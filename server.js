@@ -125,15 +125,22 @@ async function verifyKeyAuthKey(key) {
         }
         const expiry = pick(data.expiry, data.expires, data.expire, subExpiry, data.duration);
         const timeleft = pick(data.timeleft, subTimeLeft);
-        console.log('KeyAuth time fields → expiry:', expiry, '| timeleft:', timeleft, '| status:', data.status);
+
+        // Is the key already activated (used in the loader)?
+        const usedOn = pick(data.usedon, data.used_on, data.usedOn);
+        const statusStr = String(data.status || '').toLowerCase();
+        const hwid = pick(data.hwid, data.HWID);
+        const used = !!(hwid || (usedOn && String(usedOn) !== '0') || (statusStr.includes('used') && !statusStr.includes('not')));
+        console.log('KeyAuth time → expiry:', expiry, '| timeleft:', timeleft, '| usedon:', usedOn, '| status:', data.status, '| used:', used);
 
         return {
             valid: true,
             subs: [...subs],
             expiry,
             timeleft,
+            used,
             status: data.status || null,
-            hwid: data.hwid || null,
+            hwid: hwid || null,
             raw: data
         };
     } catch (err) {
@@ -251,7 +258,7 @@ app.post('/api/lookup', authMiddleware, async (req, res) => {
 
     res.json({
         products, valid: true, subs: result.subs,
-        expiry: result.expiry, timeleft: result.timeleft, hwid: result.hwid, key,
+        expiry: result.expiry, timeleft: result.timeleft, used: result.used, hwid: result.hwid, key,
         hwid_reset_next: resetNext, hwid_reset_days: HWID_RESET_DAYS
     });
 });

@@ -562,28 +562,34 @@ const RESET_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>';
 const CLOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
 
+function humanizeSeconds(secs) {
+    secs = Math.max(0, Math.round(secs));
+    const days = Math.floor(secs / 86400);
+    const hours = Math.floor((secs % 86400) / 3600);
+    if (days >= 1) return `${days} day${days === 1 ? '' : 's'}`;
+    if (hours >= 1) return `${hours} hour${hours === 1 ? '' : 's'}`;
+    const mins = Math.max(1, Math.floor(secs / 60));
+    return `${mins} min`;
+}
+
 function formatExpiry(exp, timeleft) {
-    // Absolute expiry (unix timestamp) takes priority
-    const n = Number(exp);
-    if (exp != null && exp !== '' && exp !== '0' && exp !== 0 && !isNaN(n)) {
-        let ms = null;
-        if (n > 1e12) ms = n;            // unix milliseconds
-        else if (n > 1e9) ms = n * 1000; // unix seconds
-        if (ms) {
-            const d = new Date(ms);
-            const days = Math.ceil((d.getTime() - Date.now()) / 86400000);
-            const ds = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            if (days < 0) return { label: 'Expired', value: ds };
-            return { label: 'Expires', value: `${ds} · ${days} day${days === 1 ? '' : 's'} left` };
-        }
-        // small number → duration in days
-        return { label: 'Duration', value: `${n} day${n === 1 ? '' : 's'}` };
+    const e = Number(exp);
+    // Absolute expiry as a unix timestamp -> show a date + days left
+    if (exp != null && exp !== '' && !isNaN(e) && e > 1e9) {
+        const ms = e > 1e12 ? e : e * 1000;
+        const d = new Date(ms);
+        const days = Math.ceil((d.getTime() - Date.now()) / 86400000);
+        const ds = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        if (days < 0) return { label: 'Expired', value: ds };
+        return { label: 'Expires', value: `${ds} · ${days} day${days === 1 ? '' : 's'} left` };
     }
-    // Fallback: seconds of time remaining
+    // Otherwise it's a remaining/duration value in SECONDS (KeyAuth: 86400 = 1 day)
     const tl = Number(timeleft);
     if (timeleft != null && timeleft !== '' && !isNaN(tl) && tl > 0) {
-        const days = Math.ceil(tl / 86400);
-        return { label: 'Time left', value: `${days} day${days === 1 ? '' : 's'}` };
+        return { label: 'Time left', value: humanizeSeconds(tl) };
+    }
+    if (exp != null && exp !== '' && !isNaN(e) && e > 0) {
+        return { label: 'Time left', value: humanizeSeconds(e) };
     }
     return null;
 }
@@ -803,7 +809,7 @@ function renderProducts(products, info) {
 
     const lk = currentLookup || {};
     const key = lk.key || '';
-    const redeemed = !!lk.hwid;
+    const redeemed = (lk.used != null) ? !!lk.used : !!lk.hwid;
     const resetNext = lk.hwid_reset_next ? new Date(lk.hwid_reset_next) : null;
     const resetLocked = resetNext && resetNext.getTime() > Date.now();
     const resetDays = lk.hwid_reset_days || 30;
