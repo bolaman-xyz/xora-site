@@ -453,7 +453,11 @@ app.get('/downloads', (req, res) => res.sendFile(path.join(__dirname, 'public', 
 app.get('/guides', (req, res) => res.sendFile(path.join(__dirname, 'public', 'guides.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
-app.listen(PORT, '0.0.0.0', () => console.log(`Running on port ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Running on port ${PORT}`);
+    const onVolume = process.env.DATA_DIR ? 'set' : 'NOT SET (data will be wiped on redeploy — set DATA_DIR + attach a volume)';
+    console.log(`DATA_DIR = ${DATA_DIR}  | DATA_DIR env: ${onVolume}`);
+});
 
 // ── Discord Bot ──
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
