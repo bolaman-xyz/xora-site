@@ -53,6 +53,30 @@ const upload = multer({
 
 const sessions = new Map();
 
+// ── Discord logging ──
+// Set LOG_CHANNEL_ID to a Discord channel ID; the bot posts site events there.
+const LOG_CHANNEL_ID = process.env.LOG_CHANNEL_ID;
+let logChannel = null;
+function logEvent(title, fields, color = 0xe11d2a) {
+    if (!logChannel) return;
+    try {
+        logChannel.send({ embeds: [{
+            title, color,
+            fields: (fields || []).map(f => ({
+                name: f.name,
+                value: (f.value == null || f.value === '') ? '—' : String(f.value).slice(0, 1024),
+                inline: f.inline !== false
+            })),
+            timestamp: new Date().toISOString()
+        }] }).catch(() => {});
+    } catch {}
+}
+function sessionName(s) {
+    if (!s) return 'Unknown';
+    if (s.type === 'admin') return 'Admin Panel';
+    return (s.global_name || s.username || s.discord_id || 'User') + (s.discord_id ? ` (<@${s.discord_id}>)` : '');
+}
+
 function authMiddleware(req, res, next) {
     const token = req.headers['authorization']?.replace('Bearer ', '');
     if (!token || !sessions.has(token)) return res.status(401).json({ error: 'Unauthorized' });
@@ -179,6 +203,11 @@ app.post('/api/lookup', authMiddleware, async (req, res) => {
 
     const result = await verifyKeyAuthKey(key);
     if (!result.valid) {
+        logEvent('❌ Invalid key attempt', [
+            { name: 'User', value: sessionName(req.session), inline: false },
+            { name: 'Key', value: key },
+            { name: 'Reason', value: result.error || 'Invalid' }
+        ], 0x888888);
         return res.json({ products: [], valid: false, error: result.error || 'Invalid key' });
     }
 
@@ -197,6 +226,13 @@ app.post('/api/lookup', authMiddleware, async (req, res) => {
 
     const products = productsForSubs(result.subs);
     console.log(`Key verified. Subs: ${result.subs.join(', ') || '(none)'} → ${products.length} product(s)`);
+
+    logEvent('✅ Key redeemed', [
+        { name: 'User', value: sessionName(req.session), inline: false },
+        { name: 'Key', value: key },
+        { name: 'Subscription', value: result.subs.join(', ') || '—' },
+        { name: 'Products', value: products.length ? products.map(p => p.name || p._id).join(', ') : 'none matched' }
+    ]);
 
     const resets = loadResets();
     const lastReset = resets[key] ? new Date(resets[key]).getTime() : 0;
@@ -219,6 +255,7 @@ app.post('/api/clear-key', authMiddleware, (req, res) => {
         delete users[session.discord_id];
         saveUsers(users);
     }
+    logEvent('🔁 Key removed', [{ name: 'User', value: sessionName(session), inline: false }], 0x888888);
     res.json({ ok: true });
 });
 
@@ -246,6 +283,10 @@ app.post('/api/reset-hwid', authMiddleware, async (req, res) => {
         if (data.success) {
             resets[key] = new Date().toISOString();
             saveResets(resets);
+            logEvent('🔄 HWID reset', [
+                { name: 'User', value: sessionName(req.session), inline: false },
+                { name: 'Key', value: key }
+            ], 0xf59e0b);
             return res.json({ ok: true, message: data.message || 'HWID reset', next: new Date(now + HWID_RESET_MS).toISOString() });
         }
         let msg = data.message || 'KeyAuth could not reset the HWID';
@@ -291,6 +332,10 @@ app.post('/api/admin/product', authMiddleware, (req, res) => {
     const id = 'p_' + crypto.randomBytes(5).toString('hex');
     data.products[id] = { ...req.body, created_at: new Date().toISOString() };
     saveData(data);
+    logEvent('🆕 Product created', [
+        { name: 'Name', value: req.body.name || id },
+        { name: 'Subscription', value: req.body.sub || '—' }
+    ], 0x3b82f6);
     res.json({ ok: true, id });
 });
 
@@ -312,9 +357,11 @@ app.put('/api/admin/product/:id', authMiddleware, (req, res) => {
 app.delete('/api/admin/product/:id', authMiddleware, (req, res) => {
     if (req.session.type !== 'admin') return res.status(403).json({ error: 'Not admin' });
     const data = loadData();
+    const removed = data.products && data.products[req.params.id];
     if (data.products) delete data.products[req.params.id];
     saveData(data);
     try { fs.rmSync(path.join(UPLOADS_DIR, req.params.id), { recursive: true, force: true }); } catch {}
+    logEvent('🗑️ Product deleted', [{ name: 'Name', value: (removed && removed.name) || req.params.id }], 0x888888);
     res.json({ ok: true });
 });
 
@@ -341,6 +388,10 @@ app.post('/api/admin/upload/:id', authMiddleware, (req, res) => {
             link_updated_by: 'Admin Upload'
         };
         saveData(d);
+        logEvent('⬆️ Loader uploaded', [
+            { name: 'Product', value: (d.products[req.params.id] && d.products[req.params.id].name) || req.params.id },
+            { name: 'File', value: req.file.filename }
+        ], 0x3b82f6);
         res.json({ ok: true, file: req.file.filename });
     });
 });
@@ -446,6 +497,15 @@ if (DISCORD_BOT_TOKEN) {
             console.log('Slash commands registered');
         } catch (err) {
             console.error('Failed to register commands:', err);
+        }
+        if (LOG_CHANNEL_ID) {
+            try {
+                logChannel = await bot.channels.fetch(LOG_CHANNEL_ID);
+                console.log('Log channel ready:', logChannel?.name || LOG_CHANNEL_ID);
+                logEvent('📡 Xora logging online', [{ name: 'Status', value: 'Connected' }], 0x22c55e);
+            } catch (e) {
+                console.error('Could not fetch LOG_CHANNEL_ID:', e.message);
+            }
         }
     });
 
