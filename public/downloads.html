@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Downloads | Xora</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0c0e1a;
+            background-image:
+                linear-gradient(rgba(12,14,26,0.97), rgba(12,14,26,0.97)),
+                repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.015) 40px, rgba(255,255,255,0.015) 41px),
+                repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.015) 40px, rgba(255,255,255,0.015) 41px);
+            color: #c4c4d4;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-glow {
+            position: fixed; top: -300px; left: 50%; transform: translateX(-50%);
+            width: 1000px; height: 700px;
+            background: radial-gradient(ellipse, rgba(101,40,204,0.1) 0%, rgba(60,20,160,0.04) 45%, transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* Banner */
+        .banner {
+            background: linear-gradient(90deg, #6d28d9, #8b5cf6);
+            text-align: center; padding: 7px 16px;
+            font-size: 12.5px; font-weight: 600; color: #fff;
+            letter-spacing: 0.2px;
+            position: relative; z-index: 10;
+        }
+        .banner a { color: #fff; margin-left: 4px; text-decoration: underline; text-underline-offset: 2px; }
+
+        /* Nav */
+        nav {
+            display: flex; align-items: center; gap: 28px;
+            padding: 0 28px; height: 52px;
+            background: rgba(12,14,26,0.85);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            backdrop-filter: blur(16px);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .logo {
+            display: flex; align-items: center; gap: 0;
+            text-decoration: none; margin-right: 8px;
+        }
+        .logo-box {
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            border-radius: 7px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 800; color: #fff;
+            letter-spacing: -0.5px;
+        }
+        .nav-link {
+            font-size: 13px; font-weight: 500; color: #55566a;
+            text-decoration: none; transition: color 0.15s;
+            padding: 16px 0;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover { color: #b0b0c8; }
+        .nav-link.active {
+            color: #e0e0ee;
+            border-bottom-color: #7c3aed;
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 56px 20px 36px;
+            position: relative; z-index: 1;
+        }
+        .hero h1 {
+            font-size: 36px; font-weight: 800; color: #fff;
+            letter-spacing: -0.5px;
+        }
+        .hero h1 span {
+            color: #8b5cf6;
+        }
+        .hero p {
+            color: #4e4f63; font-size: 14px; margin-top: 8px;
+        }
+
+        /* Notice */
+        .notice {
+            max-width: 880px; margin: 0 auto 24px; padding: 0 20px;
+            position: relative; z-index: 1;
+        }
+        .notice-inner {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 16px;
+            background: rgba(139,92,246,0.05);
+            border: 1px solid rgba(139,92,246,0.1);
+            border-radius: 8px;
+            font-size: 12.5px; color: #6b6b82;
+        }
+        .notice-inner strong { color: #8b5cf6; font-weight: 600; }
+        .notice-dot {
+            width: 5px; height: 5px; border-radius: 50%;
+            background: #8b5cf6; flex-shrink: 0;
+        }
+
+        /* Filter */
+        .filter-row {
+            max-width: 880px; margin: 0 auto 20px; padding: 0 20px;
+            display: flex; align-items: center; gap: 10px;
+            position: relative; z-index: 1;
+        }
+        .search {
+            flex: 1; position: relative;
+        }
+        .search input {
+            width: 100%; padding: 9px 14px 9px 36px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 8px; color: #d0d0de; font-size: 13px;
+            font-family: inherit; outline: none;
+            transition: border-color 0.15s;
+        }
+        .search input::placeholder { color: #33344a; }
+        .search input:focus { border-color: rgba(139,92,246,0.3); }
+        .search-icon {
+            position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+            width: 16px; height: 16px; color: #33344a;
+        }
+
+        .pill {
+            padding: 8px 14px; border-radius: 7px;
+            font-size: 12px; font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.06);
+            background: transparent; color: #44455a;
+            cursor: pointer; transition: all 0.15s;
+            font-family: inherit;
+        }
+        .pill:hover { border-color: rgba(255,255,255,0.1); color: #8888a0; }
+        .pill.on {
+            background: #7c3aed; border-color: #7c3aed; color: #fff;
+        }
+
+        /* Grid */
+        .grid-wrap {
+            max-width: 880px; margin: 0 auto; padding: 0 20px 60px;
+            position: relative; z-index: 1;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        /* Card */
+        .card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex; flex-direction: column;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+        .card:hover {
+            border-color: rgba(139,92,246,0.2);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+        }
+        .card-top {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        .card-icon {
+            width: 40px; height: 40px;
+            background: rgba(139,92,246,0.08);
+            border: 1px solid rgba(139,92,246,0.12);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+        }
+        .status {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 10.5px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.6px;
+        }
+        .status .dot {
+            width: 6px; height: 6px; border-radius: 50%;
+        }
+        .s-ud { color: #34d399; }
+        .s-ud .dot { background: #34d399; box-shadow: 0 0 6px rgba(52,211,153,0.4); }
+        .s-up { color: #fbbf24; }
+        .s-up .dot { background: #fbbf24; box-shadow: 0 0 6px rgba(251,191,36,0.4); }
+
+        .card-name {
+            font-size: 15px; font-weight: 700; color: #eeeef6;
+            margin-bottom: 2px;
+        }
+        .card-game {
+            font-size: 12px; color: #44455a; margin-bottom: 12px;
+        }
+        .card-meta {
+            display: flex; gap: 14px; margin-bottom: 12px;
+        }
+        .meta {
+            font-size: 11px; color: #3e3f55;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .meta svg { width: 12px; height: 12px; }
+
+        .tags {
+            display: flex; flex-wrap: wrap; gap: 5px;
+            margin-bottom: 16px;
+        }
+        .tag {
+            padding: 3px 8px; border-radius: 5px;
+            font-size: 10.5px; font-weight: 600;
+            background: rgba(139,92,246,0.07);
+            border: 1px solid rgba(139,92,246,0.1);
+            color: #8b7ec8;
+        }
+
+        .card-bottom {
+            margin-top: auto;
+            display: flex; align-items: center; justify-content: space-between;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255,255,255,0.04);
+        }
+        .ver {
+            font-size: 11px; color: #2e2f42; font-weight: 500;
+        }
+        .dl-btn {
+            display: flex; align-items: center; gap: 6px;
+            padding: 7px 16px;
+            background: #7c3aed;
+            color: #fff; border: none; border-radius: 7px;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s, transform 0.1s;
+        }
+        .dl-btn:hover { background: #6d28d9; transform: translateY(-1px); }
+        .dl-btn:active { transform: translateY(0); }
+        .dl-btn svg { width: 14px; height: 14px; }
+        .dl-btn.off {
+            background: rgba(255,255,255,0.04);
+            color: #44455a; cursor: default;
+        }
+        .dl-btn.off:hover { transform: none; }
+
+        @media (max-width: 840px) {
+            .grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 560px) {
+            .grid { grid-template-columns: 1fr; }
+            nav { padding: 0 16px; gap: 20px; }
+            .hero h1 { font-size: 26px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+
+<div class="banner">Join our Discord for Giveaways! <a href="#">Join Now</a></div>
+
+<nav>
+    <a class="logo" href="#">
+        <div class="logo-box">X</div>
+    </a>
+    <a class="nav-link active" href="downloads.html">Downloads</a>
+    <a class="nav-link" href="guides.html">Guides</a>
+</nav>
+
+<div class="hero">
+    <h1>Your <span>Downloads</span></h1>
+    <p>Access your purchased products. Disable antivirus before downloading.</p>
+</div>
+
+<div class="notice">
+    <div class="notice-inner">
+        <div class="notice-dot"></div>
+        <span><strong>Important:</strong> Disable Windows Defender & any antivirus before extracting. Run as Administrator.</span>
+    </div>
+</div>
+
+<div class="filter-row">
+    <div class="search">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <input type="text" placeholder="Search downloads..." id="q" oninput="filterCards()">
+    </div>
+</div>
+
+<div class="grid-wrap">
+    <div class="grid" id="grid">
+        <div class="loading" style="grid-column:1/-1;text-align:center;padding:40px 0;color:#44455a;font-size:13px;">Loading products...</div>
+    </div>
+</div>
+
+<script>
+const DL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>';
+
+function makeCard(p) {
+    const name = p.name || 'Untitled';
+    const desc = p.description || '';
+    const price = p.price != null ? `$${(p.price / 100).toFixed(2)}` : '';
+    const stock = p.stock != null ? p.stock : null;
+    const slug = p.path || '';
+    const img = p.image_url || p.cloudflare_image_id || '';
+    const statusText = p.status_text || '';
+    const badgeText = p.badge_text || '';
+    const variants = p.variants || [];
+    const updated = p.updated_at ? new Date(p.updated_at).toLocaleDateString('en-US', {month:'short', day:'numeric'}) : '';
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.n = name.toLowerCase();
+
+    let imgHtml = '';
+    if (img) {
+        imgHtml = `<div class="card-img" style="width:40px;height:40px;border-radius:10px;overflow:hidden;border:1px solid rgba(139,92,246,0.12);flex-shrink:0;">
+            <img src="${img}" style="width:100%;height:100%;object-fit:cover;" alt="">
+        </div>`;
+    } else {
+        imgHtml = `<div class="card-icon">📦</div>`;
+    }
+
+    let statusHtml = '';
+    const st = statusText.toLowerCase();
+    if (st.includes('updat') || st.includes('offline') || stock === 0) {
+        statusHtml = `<div class="status s-up"><span class="dot"></span>${statusText || 'Out of Stock'}</div>`;
+    } else if (statusText) {
+        statusHtml = `<div class="status s-ud"><span class="dot"></span>${statusText}</div>`;
+    } else {
+        statusHtml = `<div class="status s-ud"><span class="dot"></span>Available</div>`;
+    }
+
+    let tagsHtml = '';
+    if (badgeText) {
+        tagsHtml += `<span class="tag">${badgeText}</span>`;
+    }
+    if (variants.length > 0) {
+        variants.forEach(v => {
+            tagsHtml += `<span class="tag">${v.name || v.title || ''}</span>`;
+        });
+    }
+
+    const dlLink = p.download_link || '';
+
+    let btnHtml = '';
+    if (stock === 0) {
+        btnHtml = `<button class="dl-btn off">Out of Stock</button>`;
+    } else if (statusText && statusText.toLowerCase().includes('updat')) {
+        btnHtml = `<button class="dl-btn off">Updating...</button>`;
+    } else if (dlLink) {
+        btnHtml = `<a href="${dlLink}" target="_blank" class="dl-btn" style="text-decoration:none;">${DL_ICON}Download</a>`;
+    } else {
+        btnHtml = `<button class="dl-btn">${DL_ICON}Get Product</button>`;
+    }
+
+    card.innerHTML = `
+        <div class="card-top">
+            ${imgHtml}
+            ${statusHtml}
+        </div>
+        <div class="card-name">${name}</div>
+        <div class="card-game">${desc ? desc.replace(/<[^>]*>/g,'').substring(0,80) : ''}</div>
+        <div class="card-meta">
+            ${price ? `<span class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>${price}</span>` : ''}
+            ${updated ? `<span class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${updated}</span>` : ''}
+            ${stock != null && stock > 0 ? `<span class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16"/></svg>${stock} in stock</span>` : ''}
+        </div>
+        ${tagsHtml ? `<div class="tags">${tagsHtml}</div>` : ''}
+        <div class="card-bottom">
+            <span class="ver">${price || ''}</span>
+            ${btnHtml}
+        </div>
+    `;
+    return card;
+}
+
+async function loadProducts() {
+    const grid = document.getElementById('grid');
+    try {
+        const res = await fetch('/api/products');
+        const data = await res.json();
+        const products = data.data || data.products || data || [];
+        grid.innerHTML = '';
+        if (Array.isArray(products) && products.length > 0) {
+            products.forEach(p => grid.appendChild(makeCard(p)));
+        } else {
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:#44455a;font-size:13px;">No products found.</div>';
+        }
+    } catch (e) {
+        console.error(e);
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:#dc5656;font-size:13px;">Failed to load products.</div>';
+    }
+}
+
+function filterCards() {
+    const q = document.getElementById('q').value.toLowerCase();
+    document.querySelectorAll('.card').forEach(d => {
+        d.style.display = d.dataset.n.includes(q) ? '' : 'none';
+    });
+}
+
+loadProducts();
+</script>
+</body>
+</html>

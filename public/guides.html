@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guides | Xora</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0c0e1a;
+            background-image:
+                linear-gradient(rgba(12,14,26,0.97), rgba(12,14,26,0.97)),
+                repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.015) 40px, rgba(255,255,255,0.015) 41px),
+                repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.015) 40px, rgba(255,255,255,0.015) 41px);
+            color: #c4c4d4;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-glow {
+            position: fixed; top: -300px; left: 50%; transform: translateX(-50%);
+            width: 1000px; height: 700px;
+            background: radial-gradient(ellipse, rgba(101,40,204,0.1) 0%, rgba(60,20,160,0.04) 45%, transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* Banner */
+        .banner {
+            background: linear-gradient(90deg, #6d28d9, #8b5cf6);
+            text-align: center; padding: 7px 16px;
+            font-size: 12.5px; font-weight: 600; color: #fff;
+            letter-spacing: 0.2px; position: relative; z-index: 10;
+        }
+        .banner a { color: #fff; margin-left: 4px; text-decoration: underline; text-underline-offset: 2px; }
+
+        /* Nav */
+        nav {
+            display: flex; align-items: center; gap: 28px;
+            padding: 0 28px; height: 52px;
+            background: rgba(12,14,26,0.85);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            backdrop-filter: blur(16px);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .logo {
+            display: flex; align-items: center;
+            text-decoration: none; margin-right: 8px;
+        }
+        .logo-box {
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            border-radius: 7px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 800; color: #fff;
+        }
+        .nav-link {
+            font-size: 13px; font-weight: 500; color: #55566a;
+            text-decoration: none; transition: color 0.15s;
+            padding: 16px 0; border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover { color: #b0b0c8; }
+        .nav-link.active { color: #e0e0ee; border-bottom-color: #7c3aed; }
+
+        /* Hero */
+        .hero {
+            text-align: center; padding: 56px 20px 36px;
+            position: relative; z-index: 1;
+        }
+        .hero h1 { font-size: 36px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+        .hero h1 span { color: #8b5cf6; }
+        .hero p { color: #4e4f63; font-size: 14px; margin-top: 8px; }
+
+        /* Product tabs */
+        .tabs {
+            display: flex; gap: 6px; justify-content: center;
+            flex-wrap: wrap; padding: 0 20px; margin-bottom: 36px;
+            position: relative; z-index: 1;
+        }
+        .tab {
+            padding: 9px 16px; border-radius: 8px;
+            font-size: 12.5px; font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.06);
+            background: transparent; color: #44455a;
+            cursor: pointer; transition: all 0.15s;
+            font-family: inherit;
+        }
+        .tab:hover { border-color: rgba(255,255,255,0.1); color: #8888a0; }
+        .tab.on { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+
+        /* Content */
+        .content {
+            max-width: 720px; margin: 0 auto; padding: 0 20px 80px;
+            position: relative; z-index: 1;
+        }
+
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        /* Guide header */
+        .guide-head {
+            display: flex; align-items: center; gap: 16px;
+            padding: 20px 24px;
+            background: rgba(139,92,246,0.04);
+            border: 1px solid rgba(139,92,246,0.08);
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+        .guide-icon {
+            width: 46px; height: 46px;
+            background: rgba(139,92,246,0.08);
+            border: 1px solid rgba(139,92,246,0.12);
+            border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; flex-shrink: 0;
+        }
+        .guide-info h2 { font-size: 18px; font-weight: 700; color: #eeeef4; margin-bottom: 2px; }
+        .guide-info p { font-size: 12.5px; color: #4e4f63; }
+        .badges { display: flex; gap: 6px; margin-top: 6px; }
+        .badge {
+            padding: 2px 8px; border-radius: 5px;
+            font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.4px;
+        }
+        .b-green { background: rgba(52,211,153,0.08); color: #34d399; border: 1px solid rgba(52,211,153,0.12); }
+        .b-purple { background: rgba(139,92,246,0.08); color: #8b7ec8; border: 1px solid rgba(139,92,246,0.12); }
+        .b-yellow { background: rgba(251,191,36,0.08); color: #fbbf24; border: 1px solid rgba(251,191,36,0.12); }
+
+        /* Alert boxes */
+        .alert {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 12px 16px; border-radius: 8px;
+            font-size: 12.5px; line-height: 1.65; margin-bottom: 20px;
+        }
+        .alert svg { flex-shrink: 0; margin-top: 1px; width: 15px; height: 15px; }
+        .alert strong { font-weight: 700; }
+        .alert-warn { background: rgba(251,191,36,0.04); border: 1px solid rgba(251,191,36,0.1); color: #b8960e; }
+        .alert-err { background: rgba(239,68,68,0.04); border: 1px solid rgba(239,68,68,0.1); color: #dc5656; }
+        .alert-ok { background: rgba(52,211,153,0.04); border: 1px solid rgba(52,211,153,0.1); color: #2aac7e; }
+        .alert-info { background: rgba(139,92,246,0.04); border: 1px solid rgba(139,92,246,0.1); color: #8b7ec8; }
+
+        /* Section label */
+        .label {
+            font-size: 11px; font-weight: 700; color: #7c3aed;
+            text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 12px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .label::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.04); }
+
+        /* Steps */
+        .step {
+            display: flex; gap: 14px;
+            padding: 16px 18px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: border-color 0.15s;
+        }
+        .step:hover { border-color: rgba(139,92,246,0.12); }
+        .step-num {
+            width: 28px; height: 28px; flex-shrink: 0;
+            background: #7c3aed; border-radius: 7px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 800; color: #fff;
+        }
+        .step-body h3 { font-size: 13.5px; font-weight: 700; color: #dddde8; margin-bottom: 4px; }
+        .step-body p { font-size: 12.5px; color: #55566a; line-height: 1.65; }
+
+        .code {
+            display: block; margin-top: 8px;
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11.5px; color: #8b7ec8;
+        }
+
+        .reqs { list-style: none; margin-top: 8px; }
+        .reqs li {
+            padding: 4px 0; font-size: 12px; color: #55566a;
+            display: flex; align-items: center; gap: 7px;
+        }
+        .reqs li::before {
+            content: ''; width: 4px; height: 4px;
+            background: #7c3aed; border-radius: 50%; flex-shrink: 0;
+        }
+
+        /* FAQ */
+        .faq { margin-bottom: 6px; }
+        .faq-q {
+            width: 100%; padding: 12px 16px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 8px;
+            color: #bbbbc8; font-size: 13px; font-weight: 600;
+            font-family: inherit; cursor: pointer;
+            display: flex; align-items: center; justify-content: space-between;
+            transition: border-color 0.15s;
+        }
+        .faq-q:hover { border-color: rgba(139,92,246,0.12); }
+        .faq-q svg { color: #44455a; transition: transform 0.2s; width: 14px; height: 14px; }
+        .faq.open .faq-q { border-radius: 8px 8px 0 0; border-color: rgba(139,92,246,0.1); }
+        .faq.open .faq-q svg { transform: rotate(180deg); }
+        .faq-a {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.25s ease;
+        }
+        .faq-a-inner {
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.015);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-top: 0;
+            border-radius: 0 0 8px 8px;
+            font-size: 12.5px; color: #55566a; line-height: 1.65;
+        }
+
+        .spacer { height: 24px; }
+
+        @media (max-width: 560px) {
+            nav { padding: 0 16px; gap: 20px; }
+            .hero h1 { font-size: 26px; }
+            .guide-head { flex-direction: column; text-align: center; }
+            .step { padding: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+
+<div class="banner">Join our Discord for Giveaways! <a href="#">Join Now</a></div>
+
+<nav>
+    <a class="logo" href="#">
+        <div class="logo-box">X</div>
+    </a>
+    <a class="nav-link" href="downloads.html">Downloads</a>
+    <a class="nav-link active" href="guides.html">Guides</a>
+</nav>
+
+<div class="hero">
+    <h1>Setup <span>Guides</span></h1>
+    <p>Step-by-step instructions for every loader. Pick your product.</p>
+</div>
+
+<div class="tabs">
+    <button class="tab on" onclick="show('bo6',this)">Black Ops 6</button>
+    <button class="tab" onclick="show('mw3',this)">MW3</button>
+    <button class="tab" onclick="show('mw2',this)">MW2</button>
+    <button class="tab" onclick="show('spoof',this)">HWID Spoofer</button>
+    <button class="tab" onclick="show('arc',this)">Arc Raiders</button>
+    <button class="tab" onclick="show('r6',this)">Rainbow Six</button>
+</div>
+
+<div class="content">
+
+    <!-- BO6 -->
+    <div class="panel active" id="p-bo6">
+        <div class="guide-head">
+            <div class="guide-icon">🎯</div>
+            <div class="guide-info">
+                <h2>Black Ops 6 Loader</h2>
+                <p>Full setup guide — follow every step in order.</p>
+                <div class="badges"><span class="badge b-green">Undetected</span><span class="badge b-purple">v3.2.1</span></div>
+            </div>
+        </div>
+
+        <div class="alert alert-warn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span><strong>Before you start —</strong> Disable Windows Defender real-time protection. The loader triggers false positives.</span>
+        </div>
+
+        <div class="label">Prerequisites</div>
+
+        <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+                <h3>Disable Windows Defender</h3>
+                <p>Windows Security → Virus & threat protection → Manage settings → Turn off Real-time protection. Add your Downloads folder as an exclusion.</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+                <h3>Check Requirements</h3>
+                <p>Make sure everything below is installed:</p>
+                <ul class="reqs">
+                    <li>Windows 10/11 64-bit</li>
+                    <li>Visual C++ Redistributables (latest)</li>
+                    <li>.NET Framework 4.8+</li>
+                    <li>Game updated to latest version</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="spacer"></div>
+        <div class="label">Installation</div>
+
+        <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+                <h3>Download & Extract</h3>
+                <p>Grab the loader from the Downloads page. Extract the ZIP to a folder on your desktop — not Program Files.</p>
+                <span class="code">C:\Users\YourName\Desktop\BO6-Loader\</span>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-body">
+                <h3>Run as Administrator</h3>
+                <p>Right-click <strong>Loader.exe</strong> → Run as administrator. A console window will open.</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">5</div>
+            <div class="step-body">
+                <h3>Enter License Key</h3>
+                <p>Paste your key from the purchase email or My Keys page.</p>
+                <span class="code">XORA-XXXX-XXXX-XXXX-XXXX</span>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">6</div>
+            <div class="step-body">
+                <h3>Launch the Game</h3>
+                <p>When the loader says <strong>"Waiting for game..."</strong>, open BO6 through Steam or Battle.net. It auto-injects.</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">7</div>
+            <div class="step-body">
+                <h3>Open Menu</h3>
+                <p>Press <strong>INSERT</strong> in-game to open the cheat menu. Configure and play.</p>
+            </div>
+        </div>
+
+        <div class="spacer"></div>
+        <div class="alert alert-ok">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span><strong>Tip:</strong> Hit "Save Config" in the menu to keep your settings between sessions.</span>
+        </div>
+
+        <div class="label">Troubleshooting</div>
+
+        <div class="faq">
+            <button class="faq-q" onclick="toggle(this)">Loader closes immediately<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+            <div class="faq-a"><div class="faq-a-inner">Defender is probably still on. Double-check real-time protection is off. Also make sure you're running as admin and no overlay software is interfering.</div></div>
+        </div>
+        <div class="faq">
+            <button class="faq-q" onclick="toggle(this)">"Invalid key" error<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+            <div class="faq-a"><div class="faq-a-inner">Keys are case-sensitive — check for typos. If it still fails, your key may be expired or HWID-locked to another machine. Contact support on Discord.</div></div>
+        </div>
+        <div class="faq">
+            <button class="faq-q" onclick="toggle(this)">Game crashes after injection<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+            <div class="faq-a"><div class="faq-a-inner">Verify your game files through Steam/Battle.net. Make sure the game is fully updated. Try launching the loader before the game.</div></div>
+        </div>
+    </div>
+
+    <!-- MW3 -->
+    <div class="panel" id="p-mw3">
+        <div class="guide-head">
+            <div class="guide-icon">💀</div>
+            <div class="guide-info">
+                <h2>MW3 Loader</h2>
+                <p>Modern Warfare 3 setup guide.</p>
+                <div class="badges"><span class="badge b-green">Undetected</span><span class="badge b-purple">v2.8.4</span></div>
+            </div>
+        </div>
+
+        <div class="alert alert-warn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span><strong>Before you start —</strong> Disable all antivirus and Windows Defender real-time protection.</span>
+        </div>
+
+        <div class="label">Steps</div>
+
+        <div class="step"><div class="step-num">1</div><div class="step-body"><h3>Disable Antivirus</h3><p>Turn off Defender real-time protection. Add the loader folder to exclusions.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><h3>Download & Extract</h3><p>Download from the Downloads page. Extract to a clean desktop folder.</p><span class="code">C:\Users\YourName\Desktop\MW3-Loader\</span></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><h3>Run as Admin & Enter Key</h3><p>Right-click <strong>Loader.exe</strong> → Run as administrator. Paste your license key.</p></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><h3>Launch MW3</h3><p>Open the game through Steam or Battle.net. Auto-injects on launch. Press <strong>INSERT</strong> for the menu.</p></div></div>
+
+        <div class="spacer"></div>
+        <div class="label">Troubleshooting</div>
+
+        <div class="faq">
+            <button class="faq-q" onclick="toggle(this)">Loader not detecting the game<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+            <div class="faq-a"><div class="faq-a-inner">Wait until you're at the main menu before the loader times out. Restart the loader and try again.</div></div>
+        </div>
+        <div class="faq">
+            <button class="faq-q" onclick="toggle(this)">Menu not appearing in-game<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+            <div class="faq-a"><div class="faq-a-inner">Try INSERT, HOME, or F1. Disable Discord overlay and GeForce Experience overlay.</div></div>
+        </div>
+    </div>
+
+    <!-- MW2 -->
+    <div class="panel" id="p-mw2">
+        <div class="guide-head">
+            <div class="guide-icon">⚔️</div>
+            <div class="guide-info">
+                <h2>MW2 Loader</h2>
+                <p>Modern Warfare 2 setup guide.</p>
+                <div class="badges"><span class="badge b-yellow">Updating</span><span class="badge b-purple">v2.4.0</span></div>
+            </div>
+        </div>
+
+        <div class="alert alert-err">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <span><strong>Currently updating.</strong> The MW2 loader is being patched for the latest game update. Check Discord for announcements.</span>
+        </div>
+
+        <div class="label">Steps (when available)</div>
+
+        <div class="step"><div class="step-num">1</div><div class="step-body"><h3>Disable Antivirus</h3><p>Turn off Defender and add the loader folder to exclusions.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><h3>Download & Extract</h3><p>Download and extract to your desktop.</p><span class="code">C:\Users\YourName\Desktop\MW2-Loader\</span></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><h3>Run as Admin & Enter Key</h3><p>Right-click <strong>Loader.exe</strong> → Run as administrator. Enter your key.</p></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><h3>Launch & Play</h3><p>Start MW2. Press <strong>INSERT</strong> once injected.</p></div></div>
+    </div>
+
+    <!-- Spoofer -->
+    <div class="panel" id="p-spoof">
+        <div class="guide-head">
+            <div class="guide-icon">🛡️</div>
+            <div class="guide-info">
+                <h2>HWID Spoofer</h2>
+                <p>Universal spoofer — run this before any loader if you've been banned.</p>
+                <div class="badges"><span class="badge b-green">Undetected</span><span class="badge b-purple">v5.0.2</span></div>
+            </div>
+        </div>
+
+        <div class="alert alert-err">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span><strong>Important:</strong> Always run the spoofer BEFORE any game or loader. Re-run after every PC restart.</span>
+        </div>
+
+        <div class="label">Steps</div>
+
+        <div class="step"><div class="step-num">1</div><div class="step-body"><h3>Disable Everything</h3><p>Disable Defender, Secure Boot (BIOS if needed), and any third-party antivirus. The spoofer needs kernel access.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><h3>Download & Extract</h3><p>Download from the Downloads page. Extract to desktop.</p><span class="code">C:\Users\YourName\Desktop\HWID-Spoofer\</span></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><h3>Run as Administrator</h3><p>Right-click <strong>Spoofer.exe</strong> → Run as administrator. It'll show your current hardware IDs.</p></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><h3>Enter Key & Spoof</h3><p>Enter your license key. Click <strong>"Spoof All"</strong> and wait for the confirmation.</p></div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-body"><h3>Restart if Prompted</h3><p>Some setups require a reboot. If prompted, restart then launch your loader as normal.</p></div></div>
+
+        <div class="spacer"></div>
+        <div class="alert alert-ok">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span><strong>Remember:</strong> The spoof resets on reboot. Always re-run before each session.</span>
+        </div>
+
+        <div class="label">Troubleshooting</div>
+
+        <div class="faq">
+            <button class="faq-q" onclick="toggle(this)">"Driver failed to load" error<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+            <div class="faq-a"><div class="faq-a-inner">Disable Secure Boot in BIOS. Make sure no anti-cheat (EAC, BattlEye, Vanguard) is running.</div></div>
+        </div>
+        <div class="faq">
+            <button class="faq-q" onclick="toggle(this)">Still banned after spoofing<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+            <div class="faq-a"><div class="faq-a-inner">You need a new game account. The spoofer changes your HWID so the new account won't be linked, but the old account stays banned.</div></div>
+        </div>
+    </div>
+
+    <!-- Arc Raiders -->
+    <div class="panel" id="p-arc">
+        <div class="guide-head">
+            <div class="guide-icon">🚀</div>
+            <div class="guide-info">
+                <h2>Arc Raiders Loader</h2>
+                <p>Arc Raiders setup guide.</p>
+                <div class="badges"><span class="badge b-green">Undetected</span><span class="badge b-purple">v1.3.0</span></div>
+            </div>
+        </div>
+
+        <div class="alert alert-warn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span><strong>Before you start —</strong> Disable antivirus and run as administrator.</span>
+        </div>
+
+        <div class="label">Steps</div>
+
+        <div class="step"><div class="step-num">1</div><div class="step-body"><h3>Disable Antivirus</h3><p>Turn off Defender real-time protection. Add exclusion for the loader folder.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><h3>Download & Extract</h3><p>Download and extract to desktop.</p><span class="code">C:\Users\YourName\Desktop\ArcRaiders-Loader\</span></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><h3>Run as Admin & Enter Key</h3><p>Right-click <strong>Loader.exe</strong> → Run as administrator. Paste your key.</p></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><h3>Launch Arc Raiders</h3><p>Open through Steam. Auto-injects. Press <strong>INSERT</strong> for menu.</p></div></div>
+    </div>
+
+    <!-- Rainbow Six -->
+    <div class="panel" id="p-r6">
+        <div class="guide-head">
+            <div class="guide-icon">🌈</div>
+            <div class="guide-info">
+                <h2>Rainbow Six Loader</h2>
+                <p>R6 Siege setup guide.</p>
+                <div class="badges"><span class="badge b-green">Undetected</span><span class="badge b-purple">v4.1.2</span></div>
+            </div>
+        </div>
+
+        <div class="alert alert-warn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span><strong>Before you start —</strong> Disable antivirus. R6 uses BattlEye — no other cheats can be running.</span>
+        </div>
+
+        <div class="label">Steps</div>
+
+        <div class="step"><div class="step-num">1</div><div class="step-body"><h3>Disable Antivirus</h3><p>Turn off Defender. Add the loader folder as an exclusion.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><h3>Download & Extract</h3><p>Download and extract to desktop.</p><span class="code">C:\Users\YourName\Desktop\R6-Loader\</span></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><h3>Run Loader FIRST</h3><p>Right-click <strong>Loader.exe</strong> → Run as administrator. Enter key. <strong>Do not launch the game yet.</strong></p></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><h3>Launch R6 Siege</h3><p>Once the loader shows <strong>"Ready"</strong>, open R6 through Ubisoft Connect. Press <strong>INSERT</strong> in-game.</p></div></div>
+
+        <div class="spacer"></div>
+        <div class="alert alert-info">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span><strong>Important:</strong> Always start the loader before the game. BattlEye blocks injection if the game loads first.</span>
+        </div>
+
+        <div class="label">Troubleshooting</div>
+
+        <div class="faq">
+            <button class="faq-q" onclick="toggle(this)">BattlEye kicks me on launch<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+            <div class="faq-a"><div class="faq-a-inner">Loader must be running before the game. If you launched the game first, close everything and start over.</div></div>
+        </div>
+        <div class="faq">
+            <button class="faq-q" onclick="toggle(this)">Do I need the spoofer for Ranked?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+            <div class="faq-a"><div class="faq-a-inner">Recommended. Run the HWID spoofer before the loader for extra protection in Ranked.</div></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function show(id, el) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+    document.getElementById('p-' + id).classList.add('active');
+    el.classList.add('on');
+}
+function toggle(btn) {
+    const f = btn.parentElement;
+    const a = f.querySelector('.faq-a');
+    const open = f.classList.contains('open');
+    document.querySelectorAll('.faq').forEach(x => { x.classList.remove('open'); x.querySelector('.faq-a').style.maxHeight = null; });
+    if (!open) { f.classList.add('open'); a.style.maxHeight = a.scrollHeight + 'px'; }
+}
+</script>
+</body>
+</html>

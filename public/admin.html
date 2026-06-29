@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Xora</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0c0e1a; color: #c4c4d4;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            background-image:
+                linear-gradient(rgba(12,14,26,0.97), rgba(12,14,26,0.97)),
+                repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.015) 40px, rgba(255,255,255,0.015) 41px),
+                repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.015) 40px, rgba(255,255,255,0.015) 41px);
+        }
+        .bg-glow {
+            position: fixed; top: -300px; left: 50%; transform: translateX(-50%);
+            width: 1000px; height: 700px;
+            background: radial-gradient(ellipse, rgba(101,40,204,0.1) 0%, rgba(60,20,160,0.04) 45%, transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* Login */
+        .login-wrap {
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh; padding: 20px;
+            position: relative; z-index: 1;
+        }
+        .login-box {
+            width: 100%; max-width: 360px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px; padding: 36px 28px;
+        }
+        .login-box h1 {
+            font-size: 22px; font-weight: 800; color: #fff;
+            margin-bottom: 4px;
+        }
+        .login-box h1 span { color: #8b5cf6; }
+        .login-box p { font-size: 13px; color: #44455a; margin-bottom: 24px; }
+        .field { margin-bottom: 16px; }
+        .field label {
+            display: block; font-size: 11px; font-weight: 600;
+            color: #55566a; margin-bottom: 6px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .field input, .field textarea, .field select {
+            width: 100%; padding: 10px 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 8px; color: #d0d0de; font-size: 13px;
+            font-family: inherit; outline: none;
+            transition: border-color 0.15s;
+        }
+        .field input:focus, .field textarea:focus, .field select:focus { border-color: rgba(139,92,246,0.3); }
+        .field select { appearance: none; -webkit-appearance: none; cursor: pointer; }
+        .field select option, .field select optgroup {
+            background: #15172b; color: #e0e0ee;
+        }
+        .field textarea { resize: vertical; min-height: 80px; }
+        .btn {
+            width: 100%; padding: 10px;
+            background: #7c3aed; color: #fff;
+            border: none; border-radius: 8px;
+            font-size: 13px; font-weight: 700;
+            cursor: pointer; font-family: inherit;
+            transition: background 0.15s;
+        }
+        .btn:hover { background: #6d28d9; }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.06);
+            color: #55566a;
+        }
+        .btn-outline:hover { border-color: rgba(255,255,255,0.12); color: #8888a0; }
+        .btn-sm { width: auto; padding: 7px 14px; font-size: 12px; }
+        .btn-danger { background: #dc2626; }
+        .btn-danger:hover { background: #b91c1c; }
+        .error-msg {
+            color: #dc5656; font-size: 12px;
+            margin-top: 8px; display: none;
+        }
+
+        /* Dashboard */
+        .dashboard { display: none; position: relative; z-index: 1; }
+        .dash-nav {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 28px; height: 52px;
+            background: rgba(12,14,26,0.85);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            backdrop-filter: blur(16px);
+        }
+        .dash-nav-left { display: flex; align-items: center; gap: 16px; }
+        .logo-box {
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            border-radius: 7px; display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 800; color: #fff;
+        }
+        .dash-title { font-size: 13px; font-weight: 600; color: #8b5cf6; }
+        .logout-btn {
+            font-size: 12px; font-weight: 500; color: #44455a;
+            background: none; border: none; cursor: pointer;
+            font-family: inherit; transition: color 0.15s;
+        }
+        .logout-btn:hover { color: #dc5656; }
+
+        .dash-tabs {
+            display: flex; gap: 4px; padding: 20px 28px 0;
+        }
+        .dash-tab {
+            padding: 9px 18px; border-radius: 8px 8px 0 0;
+            font-size: 12.5px; font-weight: 600;
+            background: transparent; border: 1px solid transparent;
+            border-bottom: none; color: #44455a;
+            cursor: pointer; font-family: inherit;
+            transition: all 0.15s;
+        }
+        .dash-tab:hover { color: #8888a0; }
+        .dash-tab.on {
+            background: rgba(255,255,255,0.02);
+            border-color: rgba(255,255,255,0.06);
+            color: #d0d0de;
+        }
+
+        .dash-content {
+            max-width: 900px; margin: 0 auto;
+            padding: 24px 28px 60px;
+        }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* Product list */
+        .prod-list { display: flex; flex-direction: column; gap: 8px; }
+        .prod-item {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 10px;
+            transition: border-color 0.15s;
+        }
+        .prod-item:hover { border-color: rgba(139,92,246,0.15); }
+        .prod-name { font-size: 14px; font-weight: 600; color: #dddde8; flex: 1; }
+        .prod-id { font-size: 11px; color: #33344a; }
+        .prod-actions { display: flex; gap: 6px; }
+        .src-badge {
+            font-size: 10px; font-weight: 700; padding: 2px 7px;
+            border-radius: 5px; margin-left: 6px; vertical-align: middle;
+            letter-spacing: 0.3px;
+        }
+        .src-discord { background: rgba(88,101,242,0.15); color: #8b9cf7; border: 1px solid rgba(88,101,242,0.3); }
+        .src-admin { background: rgba(255,255,255,0.05); color: #66667e; border: 1px solid rgba(255,255,255,0.08); }
+        .discord-warn {
+            display: none; padding: 11px 14px; border-radius: 9px;
+            background: rgba(88,101,242,0.1); border: 1px solid rgba(88,101,242,0.3);
+            color: #9aa8f7; font-size: 12px; line-height: 1.5; margin-bottom: 16px;
+        }
+        .discord-warn.show { display: block; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            width: 100%; max-width: 480px;
+            background: #12142a;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px; padding: 28px;
+        }
+        .modal h2 { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 18px; }
+        .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+        /* Guide editor */
+        .guide-list { display: flex; flex-direction: column; gap: 8px; }
+        .guide-item {
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: space-between;
+            transition: border-color 0.15s;
+        }
+        .guide-item:hover { border-color: rgba(139,92,246,0.15); }
+        .guide-name { font-size: 14px; font-weight: 600; color: #dddde8; }
+        .guide-sub { font-size: 11px; color: #44455a; margin-top: 2px; }
+
+        .toast {
+            position: fixed; bottom: 24px; right: 24px;
+            padding: 10px 20px;
+            background: #22c55e; color: #fff;
+            border-radius: 8px; font-size: 12px; font-weight: 600;
+            z-index: 2000; opacity: 0; transform: translateY(10px);
+            transition: all 0.3s;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+
+        .section-label {
+            font-size: 11px; font-weight: 700; color: #7c3aed;
+            text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 12px; margin-top: 20px;
+        }
+        .hint { font-size: 11px; color: #33344a; margin-top: 4px; }
+
+        /* Step builder */
+        .step-block {
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px; padding: 14px 16px 4px;
+            margin-bottom: 12px;
+            background: rgba(255,255,255,0.015);
+        }
+        .step-block-head {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .step-block-head .sb-num {
+            font-size: 11px; font-weight: 700; color: #8b5cf6;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .sb-remove {
+            background: none; border: none; color: #55566a;
+            cursor: pointer; font-size: 15px; line-height: 1;
+            padding: 2px 6px; border-radius: 5px; transition: all 0.15s;
+        }
+        .sb-remove:hover { color: #dc5656; background: rgba(220,38,38,0.08); }
+        .step-block .field { margin-bottom: 12px; }
+        .field-row { display: flex; gap: 10px; }
+        .field-row .field { flex: 1; }
+    </style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginView">
+    <div class="login-box">
+        <h1>Admin <span>Panel</span></h1>
+        <p>Enter your password to manage downloads & guides.</p>
+        <div class="field">
+            <label>Password</label>
+            <input type="password" id="loginPass" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')login()">
+        </div>
+        <button class="btn" onclick="login()">Sign In</button>
+        <div class="error-msg" id="loginErr">Invalid password.</div>
+    </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashView">
+    <div class="dash-nav">
+        <div class="dash-nav-left">
+            <div class="logo-box">X</div>
+            <span class="dash-title">Admin Panel</span>
+        </div>
+        <button class="logout-btn" onclick="logout()">Sign Out</button>
+    </div>
+
+    <div class="dash-tabs">
+        <button class="dash-tab on" onclick="switchTab('products',this)">Products</button>
+        <button class="dash-tab" onclick="switchTab('guides',this)">Guides</button>
+    </div>
+
+    <div class="dash-content">
+
+        <!-- Products tab -->
+        <div class="tab-panel active" id="tab-products">
+            <div class="section-label">Products</div>
+            <p class="hint" style="margin-bottom:14px;">Each product is unlocked by a KeyAuth <strong>subscription name</strong>. When a customer enters a key whose subscription matches, that product shows up for them.</p>
+            <div class="prod-list" id="prodList">
+                <div style="color:#44455a;font-size:13px;padding:20px 0;">Loading products...</div>
+            </div>
+            <button class="btn btn-sm" style="margin-top:14px;" onclick="openNewProduct()">+ Add Product</button>
+        </div>
+
+        <!-- Guides tab -->
+        <div class="tab-panel" id="tab-guides">
+            <div class="section-label">Guide Pages</div>
+            <p class="hint" style="margin-bottom:14px;">Edit the download/setup instructions shown on the Guides page for each product.</p>
+            <div class="guide-list" id="guideList"></div>
+            <button class="btn btn-sm" style="margin-top:14px;" onclick="openGuideModal()">+ Add Guide</button>
+        </div>
+
+    </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div class="modal-overlay" id="productModal">
+    <div class="modal">
+        <h2 id="modalTitle">Edit Product</h2>
+        <input type="hidden" id="editId">
+        <div class="discord-warn" id="discordWarn"></div>
+        <div class="field">
+            <label>Product Name</label>
+            <input type="text" id="editName" placeholder="e.g. Fortnite External">
+        </div>
+        <div class="field">
+            <label>KeyAuth Subscription Name</label>
+            <input type="text" id="editSub" placeholder="e.g. fortnite_ext">
+            <div class="hint">The subscription on the key that unlocks this product. Must match exactly what you named it in KeyAuth. Separate multiple with commas.</div>
+        </div>
+        <div class="field">
+            <label>Description</label>
+            <input type="text" id="editDesc" placeholder="Short one-line description">
+        </div>
+        <div class="field">
+            <label>Image URL</label>
+            <input type="text" id="editImage" placeholder="https://i.imgur.com/xxxx.png">
+        </div>
+        <div class="field">
+            <label>Download Link</label>
+            <input type="text" id="editLink" placeholder="https://mega.nz/... or direct link">
+        </div>
+        <div class="field">
+            <label>Status Text</label>
+            <input type="text" id="editStatus" placeholder="e.g. Undetected, Updating, Offline">
+        </div>
+        <div class="field">
+            <label>Badge Text</label>
+            <input type="text" id="editBadge" placeholder="e.g. NEW, Popular">
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-sm btn-outline" onclick="closeModal('productModal')">Cancel</button>
+            <button class="btn btn-sm btn-danger" id="delProductBtn" onclick="deleteProduct()">Delete</button>
+            <button class="btn btn-sm" onclick="saveProduct()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Guide Modal -->
+<div class="modal-overlay" id="guideModal">
+    <div class="modal" style="max-width:660px;max-height:88vh;overflow-y:auto;">
+        <h2 id="guideModalTitle">Edit Guide</h2>
+        <input type="hidden" id="guideSlug">
+        <div class="field">
+            <label>Guide Title</label>
+            <input type="text" id="guideTitle" placeholder="e.g. Fortnite Ext Guide">
+        </div>
+        <div class="field">
+            <label>Subtitle</label>
+            <input type="text" id="guideSubtitle" placeholder="Complete setup — follow every step before your first launch.">
+        </div>
+        <div class="field">
+            <label>Show For Product</label>
+            <select id="guideProduct"><option value="">— Match by name —</option></select>
+            <div class="hint">Pick which purchased product this guide appears under.</div>
+        </div>
+
+        <div class="section-label" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+            <span>Steps</span>
+            <div style="display:flex;gap:6px;align-items:center;">
+                <select id="templatePicker" onchange="applyTemplate(this.value)" style="width:auto;padding:6px 8px;font-size:11px;"></select>
+                <button class="btn btn-sm btn-outline" type="button" onclick="saveAsTemplate()" style="font-size:11px;padding:5px 10px;">💾 Save as Template</button>
+            </div>
+        </div>
+        <div id="stepsContainer"></div>
+        <button class="btn btn-sm btn-outline" type="button" onclick="addStep()" style="margin-top:8px;">+ Add Step</button>
+
+        <div class="modal-actions">
+            <button class="btn btn-sm btn-outline" onclick="closeModal('guideModal')">Cancel</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteGuide()">Delete</button>
+            <button class="btn btn-sm" onclick="saveGuide()">Save</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let token = localStorage.getItem('admin_token') || '';
+let products = [];
+let config = {};
+
+// Auth
+async function login() {
+    const pass = document.getElementById('loginPass').value;
+    const res = await fetch('/api/admin/login', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ password: pass })
+    });
+    if (!res.ok) {
+        document.getElementById('loginErr').style.display = 'block';
+        return;
+    }
+    const d = await res.json();
+    token = d.token;
+    localStorage.setItem('admin_token', token);
+    showDashboard();
+}
+
+function logout() {
+    fetch('/api/admin/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }});
+    token = '';
+    localStorage.removeItem('admin_token');
+    document.getElementById('dashView').style.display = 'none';
+    document.getElementById('loginView').style.display = 'flex';
+}
+
+async function showDashboard() {
+    document.getElementById('loginView').style.display = 'none';
+    document.getElementById('dashView').style.display = 'block';
+    await loadAdminData();
+}
+
+async function loadAdminData() {
+    try {
+        const [prodRes, confRes] = await Promise.all([
+            fetch('/api/products'),
+            fetch('/api/admin/config', { headers: { 'Authorization': 'Bearer ' + token }})
+        ]);
+        if (confRes.status === 401) { logout(); return; }
+        const prodData = await prodRes.json();
+        products = prodData.data || [];
+        config = await confRes.json();
+        renderProducts();
+        renderGuides();
+    } catch(e) { console.error(e); }
+}
+
+// Products
+function renderProducts() {
+    const list = document.getElementById('prodList');
+    if (!products.length) { list.innerHTML = '<div style="color:#44455a;font-size:13px;">No products yet. Click "+ Add Product" to create one.</div>'; return; }
+    list.innerHTML = products.map(p => {
+        const viaDiscord = p.link_source === 'discord';
+        const discordBadge = viaDiscord
+            ? ` <span class="src-badge src-discord">🔵 Link set via Discord</span>`
+            : (p.download_link ? ` <span class="src-badge src-admin">Link set here</span>` : '');
+        const when = p.link_updated_at ? new Date(p.link_updated_at).toLocaleString() : '';
+        const whoWhen = (p.link_updated_at || p.link_updated_by)
+            ? `<div class="prod-id" style="margin-top:3px;color:${viaDiscord ? '#5b8def' : '#33344a'};">${viaDiscord ? 'Changed on Discord' : 'Changed in admin'}${p.link_updated_by ? ' by ' + p.link_updated_by : ''}${when ? ' · ' + when : ''}</div>`
+            : '';
+        const subBadge = p.sub ? ` <span class="src-badge" style="background:rgba(124,58,237,0.15);color:#a78bfa;border:1px solid rgba(124,58,237,0.3);">sub: ${p.sub}</span>` : ' <span class="src-badge" style="background:rgba(220,80,80,0.12);color:#e08585;border:1px solid rgba(220,80,80,0.3);">no sub set</span>';
+        return `<div class="prod-item">
+            <div style="flex:1">
+                <div class="prod-name">${p.name || 'Untitled'}${subBadge}${discordBadge}</div>
+                <div class="prod-id">${p.download_link ? 'Link: ' + p.download_link.substring(0,46) + '…' : 'No download link yet'}</div>
+                ${whoWhen}
+            </div>
+            <div class="prod-actions">
+                <button class="btn btn-sm btn-outline" onclick="editProduct('${p._id || p.id}')">Edit</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function fillProductForm(p) {
+    document.getElementById('editName').value = p.name || '';
+    document.getElementById('editSub').value = p.sub || '';
+    document.getElementById('editDesc').value = p.description || '';
+    document.getElementById('editImage').value = p.image_url || '';
+    document.getElementById('editLink').value = p.download_link || '';
+    document.getElementById('editStatus').value = p.status_text || '';
+    document.getElementById('editBadge').value = p.badge_text || '';
+}
+
+function openNewProduct() {
+    document.getElementById('editId').value = '';
+    document.getElementById('modalTitle').textContent = 'New Product';
+    fillProductForm({});
+    document.getElementById('discordWarn').classList.remove('show');
+    document.getElementById('delProductBtn').style.display = 'none';
+    document.getElementById('productModal').classList.add('show');
+}
+
+function editProduct(id) {
+    const p = products.find(x => String(x._id || x.id) === String(id)) || {};
+    document.getElementById('editId').value = id;
+    document.getElementById('modalTitle').textContent = 'Edit: ' + (p.name || id);
+    fillProductForm(p);
+    document.getElementById('delProductBtn').style.display = '';
+
+    const warn = document.getElementById('discordWarn');
+    if (p.link_source === 'discord') {
+        const when = p.link_updated_at ? new Date(p.link_updated_at).toLocaleString() : '';
+        warn.innerHTML = `🔵 <strong>This download link was last set from Discord</strong>${p.link_updated_by ? ' by ' + p.link_updated_by : ''}${when ? ' on ' + when : ''}.<br>Heads up — don't overwrite it here unless you mean to. Saving a new link will switch control back to the admin panel.`;
+        warn.classList.add('show');
+    } else {
+        warn.classList.remove('show');
+        warn.innerHTML = '';
+    }
+    document.getElementById('productModal').classList.add('show');
+}
+
+async function saveProduct() {
+    const id = document.getElementById('editId').value;
+    const name = document.getElementById('editName').value.trim();
+    if (!name) { toast('Add a product name'); return; }
+    const body = {
+        name,
+        sub: document.getElementById('editSub').value.trim(),
+        description: document.getElementById('editDesc').value.trim(),
+        image_url: document.getElementById('editImage').value.trim(),
+        download_link: document.getElementById('editLink').value.trim(),
+        status_text: document.getElementById('editStatus').value.trim(),
+        badge_text: document.getElementById('editBadge').value.trim()
+    };
+
+    if (id) {
+        await fetch('/api/admin/product/' + id, {
+            method: 'PUT', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        toast('Product updated');
+    } else {
+        await fetch('/api/admin/product', {
+            method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        toast('Product created');
+    }
+    closeModal('productModal');
+    await loadAdminData();
+}
+
+async function deleteProduct() {
+    const id = document.getElementById('editId').value;
+    if (!id) { closeModal('productModal'); return; }
+    if (!confirm('Delete this product? This cannot be undone.')) return;
+    await fetch('/api/admin/product/' + id, {
+        method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token }
+    });
+    closeModal('productModal');
+    toast('Product deleted');
+    await loadAdminData();
+}
+
+// Guides
+function renderGuides() {
+    const list = document.getElementById('guideList');
+    const guides = config.guides || {};
+    const keys = Object.keys(guides).filter(k => guides[k] && typeof guides[k] === 'object');
+    if (!keys.length) { list.innerHTML = '<div style="color:#44455a;font-size:13px;">No custom guides yet. Click "+ Add Guide" to create one.</div>'; return; }
+    list.innerHTML = keys.map(slug => {
+        const g = guides[slug];
+        const stepCount = (g.steps || []).length;
+        const prod = g.productName ? g.productName : (g.productId ? 'Product ' + g.productId : 'Match by name');
+        return `<div class="guide-item">
+            <div>
+                <div class="guide-name">${g.title || slug}</div>
+                <div class="guide-sub">${prod} · ${stepCount} step${stepCount === 1 ? '' : 's'}</div>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="editGuide('${slug}')">Edit</button>
+        </div>`;
+    }).join('');
+}
+
+function fillProductDropdown(selectedId) {
+    const sel = document.getElementById('guideProduct');
+    sel.innerHTML = '<option value="">— Match by name —</option>' +
+        products.map(p => {
+            const id = p._id || p.id;
+            return `<option value="${id}">${(p.name || 'Untitled').replace(/</g,'&lt;')}</option>`;
+        }).join('');
+    sel.value = selectedId || '';
+}
+
+// ---- Step builder ----
+function stepBlockHtml(s) {
+    s = s || {};
+    const items = (s.items || []).map(it => it.replace(/<strong>(.*?)<\/strong>/g, '**$1**')).join('\n');
+    return `<div class="step-block">
+        <div class="step-block-head">
+            <span class="sb-num">Step</span>
+            <button type="button" class="sb-remove" onclick="this.closest('.step-block').remove();renumberSteps()">✕</button>
+        </div>
+        <div class="field-row">
+            <div class="field"><label>Tab Name</label><input class="sb-tab" value="${esc(s.tab)}" placeholder="Requirements"></div>
+            <div class="field"><label>Step Title</label><input class="sb-title" value="${esc(s.title)}" placeholder="System Requirements"></div>
+        </div>
+        <div class="field"><label>Description</label><textarea class="sb-desc" style="min-height:50px;" placeholder="Short intro line for this step">${esc(s.description)}</textarea></div>
+        <div class="field"><label>Bullet Points (one per line · wrap text in **bold**)</label><textarea class="sb-items" style="min-height:90px;" placeholder="**Windows 10 or 11** (64-bit)&#10;**Administrator account** — run as Admin">${esc(items)}</textarea></div>
+        <div class="field"><label>Image URLs (optional · one per line)</label><textarea class="sb-images" style="min-height:50px;" placeholder="https://i.imgur.com/xxxx.png&#10;https://cdn.discordapp.com/attachments/.../shot.png">${esc((s.images || (s.image ? [s.image] : [])).join('\n'))}</textarea><div class="hint">Paste a direct image link (right-click image → Copy image address). Discord/imgur links work.</div></div>
+        <div class="field"><label>Info Box (optional)</label><input class="sb-info" value="${esc(s.info)}" placeholder="Product: ASX External · Executable: loader.exe"></div>
+        <div class="field-row">
+            <div class="field"><label>Button Text (optional)</label><input class="sb-linktext" value="${esc(s.link?.text)}" placeholder="Download WinRAR"></div>
+            <div class="field"><label>Button URL (optional)</label><input class="sb-linkurl" value="${esc(s.link?.url)}" placeholder="https://..."></div>
+        </div>
+    </div>`;
+}
+function esc(v) { return (v == null ? '' : String(v)).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+function addStep(s) {
+    const c = document.getElementById('stepsContainer');
+    c.insertAdjacentHTML('beforeend', stepBlockHtml(s));
+    renumberSteps();
+}
+function renumberSteps() {
+    document.querySelectorAll('#stepsContainer .step-block .sb-num').forEach((el, i) => el.textContent = 'Step ' + (i + 1));
+}
+function readSteps() {
+    return [...document.querySelectorAll('#stepsContainer .step-block')].map(b => {
+        const tab = b.querySelector('.sb-tab').value.trim();
+        const title = b.querySelector('.sb-title').value.trim();
+        const description = b.querySelector('.sb-desc').value.trim();
+        const items = b.querySelector('.sb-items').value.split('\n').map(x => x.trim()).filter(Boolean)
+            .map(x => x.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>'));
+        const images = b.querySelector('.sb-images').value.split('\n').map(x => x.trim()).filter(Boolean);
+        const info = b.querySelector('.sb-info').value.trim();
+        const linkText = b.querySelector('.sb-linktext').value.trim();
+        const linkUrl = b.querySelector('.sb-linkurl').value.trim();
+        const step = { tab, title, description, items };
+        if (images.length) step.images = images;
+        if (info) step.info = info;
+        if (linkText || linkUrl) step.link = { text: linkText || 'Download', url: linkUrl || '#' };
+        return step;
+    }).filter(s => s.tab || s.title || s.items.length || (s.images && s.images.length));
+}
+
+function openGuideModal() {
+    document.getElementById('guideModalTitle').textContent = 'New Guide';
+    document.getElementById('guideSlug').value = '';
+    document.getElementById('guideTitle').value = '';
+    document.getElementById('guideSubtitle').value = '';
+    fillProductDropdown('');
+    fillTemplatePicker();
+    document.getElementById('stepsContainer').innerHTML = '';
+    addStep();
+    document.getElementById('guideModal').classList.add('show');
+}
+
+function editGuide(slug) {
+    const g = config.guides?.[slug] || {};
+    document.getElementById('guideModalTitle').textContent = 'Edit: ' + (g.title || slug);
+    document.getElementById('guideSlug').value = slug;
+    document.getElementById('guideTitle').value = g.title || '';
+    document.getElementById('guideSubtitle').value = g.subtitle || '';
+    fillProductDropdown(g.productId || '');
+    fillTemplatePicker();
+    const c = document.getElementById('stepsContainer');
+    c.innerHTML = '';
+    (g.steps && g.steps.length ? g.steps : [{}]).forEach(s => addStep(s));
+    document.getElementById('guideModal').classList.add('show');
+}
+
+// ---- Templates ----
+function fillTemplatePicker() {
+    const sel = document.getElementById('templatePicker');
+    const tpls = config.templates || {};
+    const keys = Object.keys(tpls).filter(k => tpls[k] && typeof tpls[k] === 'object');
+    let html = '<option value="">Apply template…</option>';
+    html += '<option value="__asx">⚡ ASX (built-in)</option>';
+    keys.forEach(k => { html += `<option value="${k}">${esc(tpls[k].name || k)}</option>`; });
+    if (keys.length) html += '<option value="__del">🗑 Delete a template…</option>';
+    sel.innerHTML = html;
+    sel.value = '';
+}
+
+function applyTemplate(val) {
+    const sel = document.getElementById('templatePicker');
+    if (!val) return;
+    if (val === '__asx') { loadAsxTemplate(); sel.value = ''; return; }
+    if (val === '__del') { deleteTemplatePrompt(); sel.value = ''; return; }
+    const t = (config.templates || {})[val];
+    sel.value = '';
+    if (!t) return;
+    if (!document.getElementById('guideSubtitle').value.trim() && t.subtitle) document.getElementById('guideSubtitle').value = t.subtitle;
+    document.getElementById('stepsContainer').innerHTML = '';
+    (t.steps && t.steps.length ? t.steps : [{}]).forEach(s => addStep(s));
+    toast('Template applied');
+}
+
+async function saveAsTemplate() {
+    const steps = readSteps();
+    if (!steps.length) { toast('Add a step first'); return; }
+    const name = prompt('Name this template (e.g. "External Setup"):');
+    if (!name || !name.trim()) return;
+    const cleanName = name.trim();
+    const slug = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || ('tpl-' + Date.now());
+    const body = { name: cleanName, subtitle: document.getElementById('guideSubtitle').value.trim(), steps };
+    await fetch('/api/admin/template/' + slug, {
+        method: 'PUT', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+    });
+    if (!config.templates) config.templates = {};
+    config.templates[slug] = body;
+    fillTemplatePicker();
+    toast('Saved template "' + cleanName + '"');
+}
+
+async function deleteTemplatePrompt() {
+    const tpls = config.templates || {};
+    const keys = Object.keys(tpls).filter(k => tpls[k] && typeof tpls[k] === 'object');
+    if (!keys.length) return;
+    const list = keys.map((k, i) => (i + 1) + '. ' + (tpls[k].name || k)).join('\n');
+    const pick = prompt('Type the number of the template to delete:\n\n' + list);
+    if (!pick) return;
+    const idx = parseInt(pick.trim(), 10) - 1;
+    if (isNaN(idx) || idx < 0 || idx >= keys.length) { toast('Invalid choice'); return; }
+    const slug = keys[idx];
+    const nm = tpls[slug].name || slug;
+    await fetch('/api/admin/template/' + slug, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
+    delete config.templates[slug];
+    fillTemplatePicker();
+    toast('Deleted template "' + nm + '"');
+}
+
+async function saveGuide() {
+    let slug = document.getElementById('guideSlug').value.trim();
+    const title = document.getElementById('guideTitle').value.trim();
+    if (!title) { toast('Add a guide title'); return; }
+    if (!slug) slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    if (!slug) return;
+
+    const sel = document.getElementById('guideProduct');
+    const productId = sel.value;
+    const productName = productId ? (sel.options[sel.selectedIndex]?.text || '') : '';
+
+    const body = {
+        title,
+        subtitle: document.getElementById('guideSubtitle').value.trim(),
+        productId: productId || null,
+        productName: productName || null,
+        steps: readSteps()
+    };
+
+    await fetch('/api/admin/guide/' + slug, {
+        method: 'PUT', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+    });
+    closeModal('guideModal');
+    toast('Guide saved');
+    await loadAdminData();
+}
+
+async function deleteGuide() {
+    const slug = document.getElementById('guideSlug').value;
+    if (!slug) { closeModal('guideModal'); return; }
+    await fetch('/api/admin/guide/' + slug, {
+        method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token }
+    });
+    closeModal('guideModal');
+    toast('Guide deleted');
+    await loadAdminData();
+}
+
+function loadAsxTemplate() {
+    if (!document.getElementById('guideTitle').value.trim()) document.getElementById('guideTitle').value = 'Fortnite Ext Guide';
+    if (!document.getElementById('guideSubtitle').value.trim()) document.getElementById('guideSubtitle').value = 'Complete setup for ASX External — follow every step before your first launch.';
+    document.getElementById('stepsContainer').innerHTML = '';
+    ASX_TEMPLATE.forEach(s => addStep(s));
+    toast('Template loaded — edit then Save');
+}
+
+const ASX_TEMPLATE = [
+    {
+        tab: 'Requirements', title: 'System Requirements',
+        description: 'Make sure everything below is ready before installing. Skipping steps is the #1 reason the driver, overlay, or features fail.',
+        items: [
+            '**Windows 10 or 11** (64-bit)',
+            '**Administrator account** — loader must run as Admin',
+            '**Discord desktop app** installed, running, and logged in',
+            '**Fortnite** with Discord in-game overlay enabled',
+            '**Visual C++ Redistributable 2015–2022 (x64)**',
+            '**WinRAR** — required to extract downloaded files',
+            '**Stable internet** for license authentication'
+        ],
+        info: 'Product: ASX External · Executable: loader.exe · Config: %ProgramData%\\ASX External\\config.ini',
+        link: { text: 'Download WinRAR', url: 'https://www.win-rar.com/download.html' }
+    },
+    {
+        tab: 'VC++ Redist', title: 'Install Visual C++ Redistributable',
+        description: 'The loader needs the 2015–2022 x64 runtime. Install it and reboot before continuing.',
+        items: [
+            'Download the **x64** version from the official Microsoft link',
+            'Run the installer and accept the prompts',
+            'If it says already installed, choose **Repair**',
+            '**Restart your PC** after it finishes'
+        ],
+        link: { text: 'Download VC++ Redist (x64)', url: 'https://aka.ms/vs/17/release/vc_redist.x64.exe' }
+    },
+    {
+        tab: 'Disable Antivirus', title: 'Disable Antivirus / Defender',
+        description: 'Antivirus will flag and delete the loader. Add an exclusion or turn real-time protection off before extracting.',
+        items: [
+            'Open **Windows Security → Virus & threat protection**',
+            'Turn off **Real-time protection**',
+            'Add an **exclusion** for the folder you extract the loader to',
+            'Disable any third-party AV (Avast, McAfee, etc.) too'
+        ],
+        info: 'If the loader vanishes after download, your AV deleted it — restore it from quarantine and add the exclusion.'
+    },
+    {
+        tab: 'Driver Blocklist', title: 'Disable Vulnerable Driver Blocklist',
+        description: 'Windows blocks the driver the loader uses. Turn the Microsoft Vulnerable Driver Blocklist off.',
+        items: [
+            'Open **Windows Security → Device security → Core isolation**',
+            'Search **"Core isolation"** in the Start menu if you can’t find it',
+            'Turn off the **Microsoft Vulnerable Driver Blocklist**',
+            '**Reboot** to apply'
+        ]
+    },
+    {
+        tab: 'Core Isolation', title: 'Turn Off Memory Integrity',
+        description: 'Memory Integrity (Core Isolation) must be off or the driver will fail to load.',
+        items: [
+            'Open **Windows Security → Device security → Core isolation details**',
+            'Turn **Memory integrity** off',
+            '**Restart your PC** when prompted'
+        ],
+        info: 'Still failing after this? Disable Secure Boot in BIOS as a last resort.'
+    },
+    {
+        tab: 'Discord Overlay', title: 'Enable Discord In-Game Overlay',
+        description: 'The menu renders through the Discord overlay, so it has to be enabled for Fortnite.',
+        items: [
+            'Open **Discord → Settings → Game Overlay** and enable it',
+            'Go to **Registered Games**, add **Fortnite** if it’s missing',
+            'Make sure the **overlay toggle** for Fortnite is on',
+            'Keep Discord running while you play'
+        ],
+        link: { text: 'Open Discord', url: 'https://discord.com/app' }
+    }
+];
+
+// Helpers
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function switchTab(name, el) {
+    document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('on'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('on');
+    document.getElementById('tab-' + name).classList.add('active');
+}
+function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Init
+(async () => {
+    if (token) {
+        const res = await fetch('/api/admin/config', { headers: { 'Authorization': 'Bearer ' + token }});
+        if (res.ok) { showDashboard(); return; }
+        localStorage.removeItem('admin_token');
+        token = '';
+    }
+})();
+</script>
+</body>
+</html>

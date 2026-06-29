@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Products | Xora</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0f;
+            color: #a0a0b0;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            background-image:
+                radial-gradient(ellipse 600px 400px at 15% 10%, rgba(220,40,40,0.07) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 350px at 85% 80%, rgba(235,50,50,0.06) 0%, transparent 70%),
+                radial-gradient(ellipse 400px 300px at 50% 50%, rgba(200,30,30,0.04) 0%, transparent 70%),
+                repeating-linear-gradient(0deg, transparent, transparent 49px, rgba(255,255,255,0.035) 49px, rgba(255,255,255,0.035) 50px),
+                repeating-linear-gradient(90deg, transparent, transparent 49px, rgba(255,255,255,0.035) 49px, rgba(255,255,255,0.035) 50px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px; flex-shrink: 0;
+            background: rgba(8,8,14,0.95);
+            border-right: 1px solid rgba(255,255,255,0.04);
+            display: flex; flex-direction: column;
+            padding: 28px 0 16px;
+            position: fixed; top: 0; left: 0; bottom: 0;
+            z-index: 10;
+        }
+        .sidebar-logo {
+            display: flex; align-items: center; gap: 14px;
+            padding: 0 24px; margin-bottom: 40px;
+        }
+        .logo-icon {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 800; color: #fff;
+        }
+        .logo-name { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+
+        .sidebar-section {
+            font-size: 11px; font-weight: 600; color: #444460;
+            text-transform: uppercase; letter-spacing: 1.2px;
+            padding: 0 24px; margin-bottom: 10px; margin-top: 28px;
+        }
+        .sidebar-section:first-of-type { margin-top: 0; }
+        .sidebar-link {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 16px;
+            margin: 3px 14px;
+            border-radius: 10px;
+            font-size: 14px; font-weight: 500; color: #666680;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+        .sidebar-link:hover { color: #b0b0c8; background: rgba(255,255,255,0.03); }
+        .sidebar-link.active {
+            color: #fff; font-weight: 600;
+            background: rgba(255,255,255,0.07);
+        }
+        .sidebar-link svg { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.7; }
+        .sidebar-link.active svg { opacity: 1; }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 18px 24px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .user-avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 600; color: #888;
+            overflow: hidden;
+        }
+        .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .user-info { flex: 1; min-width: 0; }
+        .user-name { font-size: 13px; font-weight: 600; color: #e0e0ee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-sub { font-size: 10px; color: #555568; margin-top: 2px; }
+        .logout-btn {
+            background: none; border: none; cursor: pointer;
+            color: #444460; transition: color 0.15s; padding: 4px;
+        }
+        .logout-btn:hover { color: #aaa; }
+        .logout-btn svg { width: 16px; height: 16px; }
+
+        /* Main */
+        .main {
+            flex: 1; margin-left: 250px;
+        }
+        .main-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 24px 32px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .main-header h1 {
+            font-size: 20px; font-weight: 700; color: #fff;
+        }
+        .email-btn {
+            display: flex; align-items: center; gap: 8px;
+            padding: 9px 18px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; color: #b0b0c8;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            font-family: inherit; transition: all 0.15s;
+        }
+        .email-btn:hover { border-color: rgba(255,255,255,0.2); color: #e0e0ee; }
+        .email-btn svg { width: 14px; height: 14px; }
+
+        .main-content {
+            padding: 28px 32px;
+        }
+
+        /* Empty state */
+        .empty-state {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; padding: 100px 20px;
+            text-align: center;
+        }
+        .empty-icon {
+            width: 52px; height: 52px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 16px;
+            color: #444458;
+        }
+        .empty-icon svg { width: 24px; height: 24px; }
+        .empty-state h2 { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 6px; }
+        .empty-state p { font-size: 13px; color: #555568; margin-bottom: 22px; max-width: 300px; }
+        .empty-btn {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 22px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px; color: #b0b0c8;
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            font-family: inherit; transition: all 0.15s;
+        }
+        .empty-btn:hover { border-color: rgba(255,255,255,0.15); color: #e0e0ee; }
+        .empty-btn svg { width: 16px; height: 16px; }
+
+        /* Product cards */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 14px;
+        }
+        .product-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            transition: border-color 0.2s;
+        }
+        .product-card:hover { border-color: rgba(255,255,255,0.1); }
+        .product-top {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        .product-icon {
+            width: 40px; height: 40px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; overflow: hidden;
+        }
+        .product-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .product-status {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 10.5px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .product-status .dot { width: 6px; height: 6px; border-radius: 50%; }
+        .ps-green { color: #34d399; }
+        .ps-green .dot { background: #34d399; box-shadow: 0 0 6px rgba(52,211,153,0.4); }
+        .ps-yellow { color: #fbbf24; }
+        .ps-yellow .dot { background: #fbbf24; box-shadow: 0 0 6px rgba(251,191,36,0.4); }
+
+        .product-name { font-size: 14px; font-weight: 600; color: #eeeef4; margin-bottom: 3px; }
+        .product-desc { font-size: 12px; color: #444458; margin-bottom: 14px; line-height: 1.5; }
+
+        .product-meta {
+            display: flex; gap: 14px; margin-bottom: 16px;
+        }
+        .pm { font-size: 11px; color: #3e3f55; display: flex; align-items: center; gap: 4px; }
+        .pm svg { width: 12px; height: 12px; }
+
+        .product-bottom {
+            padding-top: 14px;
+            border-top: 1px solid rgba(255,255,255,0.04);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .product-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+        .ptag {
+            padding: 3px 8px; border-radius: 5px;
+            font-size: 10px; font-weight: 600;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            color: #777790;
+        }
+        .dl-btn {
+            display: flex; align-items: center; gap: 6px;
+            padding: 8px 18px;
+            background: #7c3aed; color: #fff;
+            border: none; border-radius: 7px;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            font-family: inherit; text-decoration: none;
+            transition: background 0.15s, transform 0.1s;
+        }
+        .dl-btn:hover { background: #6d28d9; transform: translateY(-1px); }
+        .dl-btn svg { width: 14px; height: 14px; }
+
+        /* Email modal */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 100; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            width: 100%; max-width: 420px;
+            background: #111118;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px; padding: 28px;
+        }
+        .modal h2 { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+        .modal p { font-size: 12.5px; color: #555568; margin-bottom: 18px; }
+        .modal input {
+            width: 100%; padding: 11px 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 8px; color: #d0d0de; font-size: 13px;
+            font-family: inherit; outline: none;
+            margin-bottom: 14px;
+        }
+        .modal input:focus { border-color: rgba(255,255,255,0.15); }
+        .modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
+        .modal-btn {
+            padding: 9px 18px; border-radius: 8px;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            font-family: inherit; border: none; transition: all 0.15s;
+        }
+        .btn-cancel { background: rgba(255,255,255,0.04); color: #555568; }
+        .btn-cancel:hover { color: #8888a0; }
+        .btn-go { background: #7c3aed; color: #fff; }
+        .btn-go:hover { background: #6d28d9; }
+
+        .loading-spinner {
+            display: flex; align-items: center; justify-content: center;
+            padding: 60px; color: #444458; font-size: 13px;
+        }
+
+        /* Email prompt (shown after Discord login) */
+        .email-prompt {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; padding: 80px 20px;
+            text-align: center;
+        }
+        .email-prompt-icon {
+            width: 52px; height: 52px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 16px;
+            color: #444458;
+        }
+        .email-prompt-icon svg { width: 24px; height: 24px; }
+        .email-prompt h2 { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 6px; }
+        .email-prompt p { font-size: 13px; color: #555568; margin-bottom: 22px; max-width: 340px; }
+        .email-prompt-form {
+            display: flex; gap: 8px; width: 100%; max-width: 400px;
+        }
+        .email-prompt-form input {
+            flex: 1; padding: 11px 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 8px; color: #d0d0de; font-size: 13px;
+            font-family: inherit; outline: none;
+        }
+        .email-prompt-form input:focus { border-color: rgba(255,255,255,0.15); }
+        .email-prompt-form button {
+            padding: 11px 22px;
+            background: #7c3aed; color: #fff;
+            border: none; border-radius: 8px;
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            font-family: inherit; transition: background 0.15s;
+            white-space: nowrap;
+        }
+        .email-prompt-form button:hover { background: #6d28d9; }
+
+        /* Guide view */
+        .guide-view {
+            max-width: 900px;
+            background: #0c0c11;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px;
+            padding: 36px 40px;
+            box-shadow: 0 1px 0 rgba(255,255,255,0.02) inset;
+        }
+        .guide-header { margin-bottom: 28px; }
+        .guide-header h1 { font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+        .guide-header p { font-size: 14px; color: #555568; line-height: 1.5; margin: 0; }
+
+        .guide-tabs-wrapper { position: relative; margin-bottom: 8px; }
+        .guide-tabs {
+            display: flex; gap: 2px;
+            overflow-x: auto; padding-bottom: 0;
+            scrollbar-width: none;
+        }
+        .guide-tabs::-webkit-scrollbar { display: none; }
+        .guide-tab {
+            padding: 10px 18px; border-radius: 10px;
+            font-size: 13px; font-weight: 500; color: #555568;
+            background: transparent; border: none;
+            cursor: pointer; font-family: inherit; transition: all 0.15s;
+            white-space: nowrap; display: flex; align-items: center; gap: 8px;
+        }
+        .guide-tab:hover { color: #b0b0c8; background: rgba(255,255,255,0.03); }
+        .guide-tab.active {
+            color: #fff; font-weight: 600;
+            background: rgba(255,255,255,0.06);
+        }
+        .guide-tab svg { width: 15px; height: 15px; opacity: 0.6; }
+        .guide-tab.active svg { opacity: 1; }
+
+        .guide-progress {
+            height: 3px; background: rgba(255,255,255,0.04);
+            border-radius: 2px; margin: 16px 0 28px;
+            overflow: hidden;
+        }
+        .guide-progress-bar {
+            height: 100%; background: #fff;
+            border-radius: 2px; transition: width 0.3s;
+        }
+
+        .guide-step-label {
+            display: inline-flex; align-items: center; gap: 8px;
+            margin-bottom: 14px;
+        }
+        .guide-step-label .step-num {
+            font-size: 11px; font-weight: 700; color: #888898;
+            background: rgba(255,255,255,0.05);
+            padding: 4px 10px; border-radius: 5px;
+            letter-spacing: 0.5px;
+        }
+        .guide-step-label .step-of {
+            font-size: 11px; font-weight: 600; color: #444460;
+            letter-spacing: 0.5px;
+        }
+
+        .guide-view h2 {
+            font-size: 22px; font-weight: 700; color: #fff;
+            margin-bottom: 12px;
+        }
+        .guide-view .guide-desc {
+            font-size: 14px; color: #777788; line-height: 1.7;
+            margin-bottom: 24px;
+        }
+        .guide-view ul {
+            list-style: none; padding: 0; margin-bottom: 28px;
+        }
+        .guide-view ul li {
+            padding: 10px 0 10px 24px; position: relative;
+            font-size: 14.5px; color: #777788; line-height: 1.6;
+        }
+        .guide-view ul li::before {
+            content: ''; position: absolute; left: 4px; top: 18px;
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #444460;
+        }
+        .guide-view ul li strong { color: #e0e0ee; font-weight: 600; }
+
+        .guide-img {
+            display: block; max-width: 100%; height: auto;
+            border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);
+            margin: 0 0 24px; cursor: zoom-in;
+            transition: border-color 0.15s;
+        }
+        .guide-img:hover { border-color: rgba(255,255,255,0.18); }
+
+        .guide-info-box {
+            padding: 16px 20px; border-radius: 12px;
+            background: rgba(139,92,246,0.05);
+            border: 1px solid rgba(139,92,246,0.1);
+            font-size: 13.5px; color: #8b8baa; margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        .guide-dl-btn {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px; color: #d0d0de;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            font-family: inherit; text-decoration: none;
+            transition: all 0.15s;
+        }
+        .guide-dl-btn:hover { border-color: rgba(255,255,255,0.15); color: #fff; background: rgba(255,255,255,0.06); }
+        .guide-dl-btn svg { width: 16px; height: 16px; }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 64px; padding: 16px 0; }
+            .sidebar-logo { padding: 0; justify-content: center; }
+            .logo-name, .sidebar-section, .sidebar-link span, .user-info, .sidebar-divider { display: none; }
+            .sidebar-link { justify-content: center; padding: 10px; margin: 2px 8px; }
+            .sidebar-bottom { padding: 10px; margin: 0 4px; justify-content: center; }
+            .main { margin-left: 64px; }
+            .main-header { padding: 20px; }
+            .main-content { padding: 20px; }
+            .product-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon">X</div>
+        <span class="logo-name">Xora</span>
+    </div>
+
+    <div class="sidebar-section">License</div>
+    <a href="#" class="sidebar-link active" onclick="showProductsView();return false;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
+        <span>My Products</span>
+    </a>
+
+    <div id="docsSection" style="display:none">
+        <div class="sidebar-section">Documentation</div>
+        <div id="docsLinks"></div>
+    </div>
+
+    <div class="sidebar-section">Community</div>
+    <a href="#" class="sidebar-link" id="discordLink">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg>
+        <span>Discord Server</span>
+    </a>
+
+    <div class="sidebar-bottom" id="userSection">
+        <div class="user-avatar" id="userAvatar">?</div>
+        <div class="user-info">
+            <div class="user-name" id="userName">Guest</div>
+            <div class="user-sub" id="userSub">Not signed in</div>
+        </div>
+        <button class="logout-btn" onclick="signOut()" title="Sign out">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+    </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+    <div class="main-header">
+        <h1>My Products</h1>
+    </div>
+
+    <div class="main-content" id="content">
+        <div class="loading-spinner">Loading your products...</div>
+    </div>
+</div>
+
+<!-- License Key Modal -->
+<div class="modal-overlay" id="emailModal">
+    <div class="modal">
+        <h2>Find your products</h2>
+        <p>Enter your license key to unlock your downloads.</p>
+        <input type="text" id="lookupEmail" placeholder="XXXX-XXXX-XXXX-XXXX" onkeydown="if(event.key==='Enter')doLookup()">
+        <div class="modal-btns">
+            <button class="modal-btn btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="modal-btn btn-go" onclick="doLookup()">Unlock</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let token = '';
+let user = null;
+let loadedProducts = [];
+let guidesData = {};
+
+const DL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>';
+const KEY_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15.5 7.5 2.3-2.3a1 1 0 0 1 1.4 0l1.1 1.1a1 1 0 0 1 0 1.4L18 10"/><path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/></svg>';
+const BOX_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>';
+
+const MAIL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15.5 7.5 2.3-2.3a1 1 0 0 1 1.4 0l1.1 1.1a1 1 0 0 1 0 1.4L18 10"/><path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/></svg>';
+
+function showEmailPrompt() {
+    document.getElementById('content').innerHTML = `
+        <div class="email-prompt">
+            <div class="email-prompt-icon">${MAIL_SVG}</div>
+            <h2>Enter your license key</h2>
+            <p>Paste your license key to unlock the downloads tied to it.</p>
+            <div class="email-prompt-form">
+                <input type="text" id="promptEmail" placeholder="XXXX-XXXX-XXXX-XXXX" onkeydown="if(event.key==='Enter')submitEmail()">
+                <button onclick="submitEmail()">Unlock</button>
+            </div>
+            <div id="keyError" style="color:#e25555;font-size:12.5px;margin-top:12px;display:none;"></div>
+        </div>`;
+    setTimeout(() => { const el = document.getElementById('promptEmail'); if (el) el.focus(); }, 100);
+}
+
+async function submitEmail() {
+    const key = document.getElementById('promptEmail').value.trim();
+    if (!key) return;
+    document.getElementById('content').innerHTML = '<div class="loading-spinner">Verifying your key...</div>';
+    await loadGuides();
+    try {
+        const res = await fetch('/api/lookup', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key })
+        });
+        const data = await res.json();
+        if (data.valid === false) {
+            showEmailPrompt();
+            const er = document.getElementById('keyError');
+            if (er) { er.textContent = data.error || 'That key is invalid or expired.'; er.style.display = 'block'; }
+            const inp = document.getElementById('promptEmail'); if (inp) inp.value = key;
+            return;
+        }
+        renderProducts(data.products || []);
+    } catch (e) {
+        document.getElementById('content').innerHTML = '<div class="loading-spinner">Verification failed. Try again.</div>';
+    }
+}
+
+const GUIDE_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>';
+const PRODUCTS_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>';
+
+async function loadGuides() {
+    try {
+        const res = await fetch('/api/guides');
+        guidesData = await res.json();
+    } catch(e) { guidesData = {}; }
+}
+
+function showGuideLinks(products) {
+    const docsSection = document.getElementById('docsSection');
+    const docsLinks = document.getElementById('docsLinks');
+    if (!products || products.length === 0) { docsSection.style.display = 'none'; return; }
+
+    const guideKeys = Object.keys(guidesData);
+    const matchedGuides = [];
+
+    for (const p of products) {
+        const pid = String(p._id || p.id);
+        const pName = (p.name || '').toLowerCase();
+        let found = null;
+        for (const key of guideKeys) {
+            const guide = guidesData[key];
+            if (!guide) continue;
+            const gName = (guide.title || key).toLowerCase();
+            const idMatch = guide.productId && String(guide.productId) === pid;
+            const nameMatch = pName && (pName.includes(gName) || gName.includes(pName) || key.toLowerCase().includes(pName.replace(/\s+/g, '-')));
+            if (idMatch || nameMatch) { found = { key, title: guide.title || key }; break; }
+        }
+        if (!found) found = { key: '__product_' + pid, title: (p.name || 'Product') + ' Guide', productName: p.name };
+        if (!matchedGuides.find(m => m.key === found.key)) matchedGuides.push(found);
+    }
+
+    if (matchedGuides.length === 0) { docsSection.style.display = 'none'; return; }
+
+    docsSection.style.display = 'block';
+    docsLinks.innerHTML = matchedGuides.map(g =>
+        `<a href="#" class="sidebar-link" onclick="showGuide('${g.key}');return false;">
+            ${GUIDE_SVG}
+            <span>${g.title}</span>
+        </a>`
+    ).join('');
+}
+
+function setActiveLink(el) {
+    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+    if (el) el.classList.add('active');
+}
+
+function showProductsView() {
+    setActiveLink(document.querySelector('.sidebar-link'));
+    document.querySelector('.main-header h1').textContent = 'My Products';
+    renderProducts(loadedProducts);
+}
+
+function showGuide(key) {
+    const clicked = [...document.querySelectorAll('.sidebar-link')].find(l => l.onclick?.toString().includes(key) || l.getAttribute('onclick')?.includes(key));
+    setActiveLink(clicked);
+
+    const guide = guidesData[key];
+    const el = document.getElementById('content');
+
+    if (!guide || key.startsWith('__product_')) {
+        const productName = key.startsWith('__product_') ? (loadedProducts.find(p => '__product_' + (p._id || p.id) === key)?.name || 'Product') : key;
+        document.querySelector('.main-header h1').textContent = productName + ' Guide';
+        el.innerHTML = `
+            <div class="guide-view">
+                <div class="guide-header">
+                    <h1>${productName} Guide</h1>
+                    <p>No guide has been created for this product yet. Check back later or contact support.</p>
+                </div>
+            </div>`;
+        return;
+    }
+
+    const title = guide.title || key;
+    const subtitle = guide.subtitle || 'Complete setup — follow every step before your first launch.';
+    document.querySelector('.main-header h1').textContent = title;
+    const steps = guide.steps || [];
+
+    if (steps.length === 0) {
+        el.innerHTML = `<div class="guide-view"><div class="guide-header"><h1>${title}</h1><p>${guide.content || 'No guide content yet.'}</p></div></div>`;
+        return;
+    }
+
+    const progressPct = Math.round((1 / steps.length) * 100);
+
+    let html = '<div class="guide-view">';
+    html += `<div class="guide-header"><h1>${title}</h1><p>${subtitle}</p></div>`;
+    html += '<div class="guide-tabs-wrapper"><div class="guide-tabs">';
+    steps.forEach((s, i) => {
+        const icon = s.icon ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${s.icon}</svg>` : '';
+        html += `<button class="guide-tab ${i === 0 ? 'active' : ''}" onclick="switchGuideStep(${i}, '${key}')">${icon} ${s.tab || ('Step ' + (i+1))}</button>`;
+    });
+    html += '</div></div>';
+    html += `<div class="guide-progress"><div class="guide-progress-bar" id="guideProgress" style="width:${progressPct}%"></div></div>`;
+    html += `<div id="guideStepContent">${renderGuideStep(steps[0], 0, steps.length)}</div>`;
+    html += '</div>';
+    el.innerHTML = html;
+}
+
+function switchGuideStep(idx, key) {
+    const guide = guidesData[key];
+    if (!guide || !guide.steps) return;
+    const total = guide.steps.length;
+    document.querySelectorAll('.guide-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+    const bar = document.getElementById('guideProgress');
+    if (bar) bar.style.width = Math.round(((idx + 1) / total) * 100) + '%';
+    document.getElementById('guideStepContent').innerHTML = renderGuideStep(guide.steps[idx], idx, total);
+}
+
+function renderGuideStep(step, idx, total) {
+    let html = `<div class="guide-step-label"><span class="step-num">STEP ${idx + 1}</span><span class="step-of">OF ${total}</span></div>`;
+    html += `<h2>${step.title || ''}</h2>`;
+    if (step.description) html += `<p class="guide-desc">${step.description}</p>`;
+    if (step.items && step.items.length) {
+        html += '<ul>';
+        step.items.forEach(item => { html += `<li>${item}</li>`; });
+        html += '</ul>';
+    }
+    const imgs = step.images && step.images.length ? step.images : (step.image ? [step.image] : []);
+    imgs.forEach(src => { html += `<img class="guide-img" src="${src}" alt="" loading="lazy" onclick="window.open(this.src,'_blank')">`; });
+    if (step.info) html += `<div class="guide-info-box">${step.info}</div>`;
+    if (step.link) html += `<a href="${step.link.url || '#'}" target="_blank" class="guide-dl-btn">${DL_SVG} ${step.link.text || 'Download'}</a>`;
+    return html;
+}
+
+function renderProducts(products) {
+    loadedProducts = products || [];
+    showGuideLinks(loadedProducts);
+    const el = document.getElementById('content');
+    if (!products || products.length === 0) {
+        el.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">${BOX_SVG}</div>
+                <h2>No products yet</h2>
+                <p>Enter your license key to gain access to the loader.</p>
+                <button class="empty-btn" onclick="openEmailModal()">
+                    ${KEY_SVG}
+                    Enter License Key
+                </button>
+            </div>`;
+        return;
+    }
+
+    el.innerHTML = '<div class="product-grid">' + products.map(p => {
+        const name = p.name || 'Untitled';
+        const desc = p.description ? p.description.replace(/<[^>]*>/g, '').substring(0, 100) : '';
+        const img = p.image_url || p.cloudflare_image_id || '';
+        const statusText = p.status_text || 'Available';
+        const st = statusText.toLowerCase();
+        const statusClass = (st.includes('updat') || st.includes('offline')) ? 'ps-yellow' : 'ps-green';
+        const dlLink = p.download_link || '';
+        const variants = p.variants || [];
+        const badgeText = p.badge_text || '';
+        const purchased = p.purchased_at ? new Date(p.purchased_at).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '';
+
+        let imgHtml = img
+            ? `<div class="product-icon"><img src="${img}" alt=""></div>`
+            : `<div class="product-icon">${BOX_SVG}</div>`;
+
+        let btnHtml;
+        if (st.includes('updat')) {
+            btnHtml = `<button class="dl-btn" style="background:rgba(255,255,255,0.04);color:#444458;cursor:default;">Updating...</button>`;
+        } else if (dlLink) {
+            btnHtml = `<a href="${dlLink}" target="_blank" class="dl-btn">${DL_SVG} Download</a>`;
+        } else {
+            btnHtml = `<button class="dl-btn">${DL_SVG} Download</button>`;
+        }
+
+        let tagsHtml = '';
+        if (badgeText) tagsHtml += `<span class="ptag">${badgeText}</span>`;
+        variants.forEach(v => { if (v.name) tagsHtml += `<span class="ptag">${v.name}</span>`; });
+
+        return `
+            <div class="product-card">
+                <div class="product-top">
+                    ${imgHtml}
+                    <div class="product-status ${statusClass}"><span class="dot"></span>${statusText}</div>
+                </div>
+                <div class="product-name">${name}</div>
+                <div class="product-desc">${desc}</div>
+                <div class="product-meta">
+                    ${purchased ? `<span class="pm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${purchased}</span>` : ''}
+                </div>
+                <div class="product-bottom">
+                    <div class="product-tags">${tagsHtml}</div>
+                    ${btnHtml}
+                </div>
+            </div>`;
+    }).join('') + '</div>';
+}
+
+function updateUser(data) {
+    user = data;
+    document.getElementById('userName').textContent = data.global_name || data.username || 'Guest';
+    document.getElementById('userSub').textContent = data.saved_key ? 'Key verified' : 'Discord';
+    if (data.avatar) {
+        document.getElementById('userAvatar').innerHTML = `<img src="${data.avatar}" alt="">`;
+    } else {
+        document.getElementById('userAvatar').textContent = (data.global_name || data.username || '?')[0].toUpperCase();
+    }
+}
+
+async function doLookup() {
+    const key = document.getElementById('lookupEmail').value.trim();
+    if (!key) return;
+    closeModal();
+    document.getElementById('content').innerHTML = '<div class="loading-spinner">Verifying your key...</div>';
+
+    try {
+        const res = await fetch('/api/lookup', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key })
+        });
+        const data = await res.json();
+        if (data.valid === false) { showEmailPrompt(); const er = document.getElementById('keyError'); if (er) { er.textContent = data.error || 'That key is invalid or expired.'; er.style.display = 'block'; } return; }
+        renderProducts(data.products || []);
+    } catch (e) {
+        document.getElementById('content').innerHTML = '<div class="loading-spinner">Verification failed. Try again.</div>';
+    }
+}
+
+function openEmailModal() { document.getElementById('emailModal').classList.add('show'); document.getElementById('lookupEmail').focus(); }
+function closeModal() { document.getElementById('emailModal').classList.remove('show'); }
+
+function signOut() {
+    localStorage.removeItem('od_token');
+    window.location.href = '/';
+}
+
+(async () => {
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+
+    await loadGuides();
+
+    if (params.has('token')) {
+        token = params.get('token');
+        localStorage.setItem('od_token', token);
+        history.replaceState(null, '', '/dashboard');
+    } else {
+        token = localStorage.getItem('od_token') || '';
+    }
+
+    if (!token) { window.location.href = '/'; return; }
+
+    try {
+        const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token }});
+        if (res.ok) {
+            const data = await res.json();
+            updateUser(data);
+            if (data.saved_key) {
+                // Auto-load products with the remembered license key
+                try {
+                    const lookupRes = await fetch('/api/lookup', {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ key: data.saved_key })
+                    });
+                    if (lookupRes.ok) {
+                        const lookupData = await lookupRes.json();
+                        if (lookupData.valid === false) { showEmailPrompt(); }
+                        else { renderProducts(lookupData.products || []); }
+                    } else {
+                        showEmailPrompt();
+                    }
+                } catch(e) { showEmailPrompt(); }
+            } else {
+                showEmailPrompt();
+            }
+        } else {
+            localStorage.removeItem('od_token');
+            window.location.href = '/';
+        }
+    } catch(e) {
+        showEmailPrompt();
+    }
+})();
+</script>
+</body>
+</html>
