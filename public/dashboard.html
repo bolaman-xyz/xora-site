@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Products | Xora</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -36,12 +39,10 @@
             padding: 0 24px; margin-bottom: 40px;
         }
         .logo-icon {
-            width: 36px; height: 36px;
-            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-            border-radius: 10px;
+            width: 38px; height: 38px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 12px; font-weight: 800; color: #fff;
         }
+        .logo-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
         .logo-name { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
 
         .sidebar-section {
@@ -261,13 +262,13 @@
         .dl-btn {
             display: flex; align-items: center; gap: 6px;
             padding: 8px 18px;
-            background: #7c3aed; color: #fff;
+            background: #e11d2a; color: #fff;
             border: none; border-radius: 7px;
             font-size: 12px; font-weight: 600; cursor: pointer;
             font-family: inherit; text-decoration: none;
             transition: background 0.15s, transform 0.1s;
         }
-        .dl-btn:hover { background: #6d28d9; transform: translateY(-1px); }
+        .dl-btn:hover { background: #b3141f; transform: translateY(-1px); }
         .dl-btn svg { width: 14px; height: 14px; }
 
         /* Email modal */
@@ -302,8 +303,8 @@
         }
         .btn-cancel { background: rgba(255,255,255,0.04); color: #555568; }
         .btn-cancel:hover { color: #8888a0; }
-        .btn-go { background: #7c3aed; color: #fff; }
-        .btn-go:hover { background: #6d28d9; }
+        .btn-go { background: #e11d2a; color: #fff; }
+        .btn-go:hover { background: #b3141f; }
 
         .loading-spinner {
             display: flex; align-items: center; justify-content: center;
@@ -341,13 +342,13 @@
         .email-prompt-form input:focus { border-color: rgba(255,255,255,0.15); }
         .email-prompt-form button {
             padding: 11px 22px;
-            background: #7c3aed; color: #fff;
+            background: #e11d2a; color: #fff;
             border: none; border-radius: 8px;
             font-size: 13px; font-weight: 600; cursor: pointer;
             font-family: inherit; transition: background 0.15s;
             white-space: nowrap;
         }
-        .email-prompt-form button:hover { background: #6d28d9; }
+        .email-prompt-form button:hover { background: #b3141f; }
 
         /* Guide view */
         .guide-view {
@@ -441,8 +442,8 @@
 
         .guide-info-box {
             padding: 16px 20px; border-radius: 12px;
-            background: rgba(139,92,246,0.05);
-            border: 1px solid rgba(139,92,246,0.1);
+            background: rgba(225,29,42,0.05);
+            border: 1px solid rgba(225,29,42,0.1);
             font-size: 13.5px; color: #8b8baa; margin-bottom: 24px;
             line-height: 1.5;
         }
@@ -477,7 +478,7 @@
 <!-- Sidebar -->
 <div class="sidebar">
     <div class="sidebar-logo">
-        <div class="logo-icon">X</div>
+        <div class="logo-icon"><img src="/logo.png" alt="Xora"></div>
         <span class="logo-name">Xora</span>
     </div>
 

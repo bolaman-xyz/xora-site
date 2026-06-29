@@ -446,7 +446,7 @@ if (DISCORD_BOT_TOKEN) {
             saveData(data);
 
             const embed = new EmbedBuilder()
-                .setColor(0x7c3aed)
+                .setColor(0xe11d2a)
                 .setTitle(commandName === 'updatelink' ? 'Download Link Updated' : 'Download Link Set')
                 .addFields(
                     { name: 'Product', value: product.name || String(product.id), inline: true },
@@ -468,7 +468,7 @@ if (DISCORD_BOT_TOKEN) {
             saveData(data);
 
             const embed = new EmbedBuilder()
-                .setColor(0x7c3aed)
+                .setColor(0xe11d2a)
                 .setTitle('Status Updated')
                 .addFields(
                     { name: 'Product', value: product.name || String(product.id), inline: true },
@@ -485,7 +485,7 @@ if (DISCORD_BOT_TOKEN) {
             }
 
             const embed = new EmbedBuilder()
-                .setColor(0x7c3aed)
+                .setColor(0xe11d2a)
                 .setTitle('All Products')
                 .setTimestamp();
 

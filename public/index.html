@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In | Xora</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -36,6 +39,10 @@
             text-align: center;
             backdrop-filter: blur(16px);
         }
+        .brand-logo {
+            width: 64px; height: 64px; object-fit: contain;
+            display: block; margin: 0 auto 18px;
+        }
         .card h1 {
             font-size: 22px; font-weight: 700; color: #fff;
             margin-bottom: 8px;
@@ -67,6 +74,7 @@
 <div class="bg"></div>
 
 <div class="card">
+    <img src="/logo.png" alt="Xora" class="brand-logo">
     <h1>Sign in</h1>
     <p>Access your license and download the loader.</p>
 
