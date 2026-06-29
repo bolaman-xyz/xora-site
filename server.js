@@ -227,13 +227,6 @@ app.post('/api/lookup', authMiddleware, async (req, res) => {
     const products = productsForSubs(result.subs);
     console.log(`Key verified. Subs: ${result.subs.join(', ') || '(none)'} → ${products.length} product(s)`);
 
-    logEvent('✅ Key redeemed', [
-        { name: 'User', value: sessionName(req.session), inline: false },
-        { name: 'Key', value: key },
-        { name: 'Subscription', value: result.subs.join(', ') || '—' },
-        { name: 'Products', value: products.length ? products.map(p => p.name || p._id).join(', ') : 'none matched' }
-    ]);
-
     const resets = loadResets();
     const lastReset = resets[key] ? new Date(resets[key]).getTime() : 0;
     const resetNext = lastReset ? new Date(lastReset + HWID_RESET_MS).toISOString() : null;
@@ -256,6 +249,17 @@ app.post('/api/clear-key', authMiddleware, (req, res) => {
         saveUsers(users);
     }
     logEvent('🔁 Key removed', [{ name: 'User', value: sessionName(session), inline: false }], 0x888888);
+    res.json({ ok: true });
+});
+
+// Log a loader download (called by the dashboard download button)
+app.post('/api/log-download', authMiddleware, (req, res) => {
+    const data = loadData();
+    const p = data.products && data.products[req.body.id];
+    logEvent('⬇️ Loader downloaded', [
+        { name: 'User', value: sessionName(req.session), inline: false },
+        { name: 'Product', value: (p && p.name) || req.body.id || '—' }
+    ], 0x22c55e);
     res.json({ ok: true });
 });
 
@@ -332,10 +336,6 @@ app.post('/api/admin/product', authMiddleware, (req, res) => {
     const id = 'p_' + crypto.randomBytes(5).toString('hex');
     data.products[id] = { ...req.body, created_at: new Date().toISOString() };
     saveData(data);
-    logEvent('🆕 Product created', [
-        { name: 'Name', value: req.body.name || id },
-        { name: 'Subscription', value: req.body.sub || '—' }
-    ], 0x3b82f6);
     res.json({ ok: true, id });
 });
 
@@ -357,11 +357,9 @@ app.put('/api/admin/product/:id', authMiddleware, (req, res) => {
 app.delete('/api/admin/product/:id', authMiddleware, (req, res) => {
     if (req.session.type !== 'admin') return res.status(403).json({ error: 'Not admin' });
     const data = loadData();
-    const removed = data.products && data.products[req.params.id];
     if (data.products) delete data.products[req.params.id];
     saveData(data);
     try { fs.rmSync(path.join(UPLOADS_DIR, req.params.id), { recursive: true, force: true }); } catch {}
-    logEvent('🗑️ Product deleted', [{ name: 'Name', value: (removed && removed.name) || req.params.id }], 0x888888);
     res.json({ ok: true });
 });
 
@@ -388,10 +386,6 @@ app.post('/api/admin/upload/:id', authMiddleware, (req, res) => {
             link_updated_by: 'Admin Upload'
         };
         saveData(d);
-        logEvent('⬆️ Loader uploaded', [
-            { name: 'Product', value: (d.products[req.params.id] && d.products[req.params.id].name) || req.params.id },
-            { name: 'File', value: req.file.filename }
-        ], 0x3b82f6);
         res.json({ ok: true, file: req.file.filename });
     });
 });

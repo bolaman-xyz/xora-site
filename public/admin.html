@@ -750,7 +750,14 @@ async function saveGuide() {
     let slug = document.getElementById('guideSlug').value.trim();
     const title = document.getElementById('guideTitle').value.trim();
     if (!title) { toast('Add a guide title'); return; }
-    if (!slug) slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    if (!slug) {
+        // New guide — generate a UNIQUE slug so it never overwrites an existing guide
+        const base = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'guide';
+        const existing = config.guides || {};
+        slug = base;
+        let n = 2;
+        while (existing[slug]) { slug = base + '-' + n; n++; }
+    }
     if (!slug) return;
 
     const sel = document.getElementById('guideProduct');

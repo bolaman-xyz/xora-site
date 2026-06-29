@@ -780,7 +780,7 @@ function renderProducts(products, info) {
         if (st.includes('updat')) {
             dlBtn = `<button class="xdl disabled">${DL_SVG} Updating…</button>`;
         } else if (dlLink) {
-            dlBtn = `<a class="xdl" href="${dlLink}" target="_blank">${DL_SVG} Download Loader</a>`;
+            dlBtn = `<a class="xdl" href="${dlLink}" target="_blank" onclick="logDownload('${p.id || p._id}')">${DL_SVG} Download Loader</a>`;
         } else {
             dlBtn = `<button class="xdl disabled">${DL_SVG} Coming soon</button>`;
         }
@@ -807,6 +807,16 @@ function renderProducts(products, info) {
                 <div class="xnote">Can be used once every ${resetDays} days.</div>
             </div>`;
     }).join('') + '</div>';
+}
+
+function logDownload(id) {
+    try {
+        fetch('/api/log-download', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        });
+    } catch (e) {}
 }
 
 function copyKey(btn) {
