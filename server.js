@@ -193,6 +193,19 @@ app.post('/api/lookup', authMiddleware, async (req, res) => {
     });
 });
 
+// Forget the caller's saved key so they can enter a different one
+app.post('/api/clear-key', authMiddleware, (req, res) => {
+    const session = req.session || {};
+    session.key = null;
+    session.saved_key = null;
+    if (session.discord_id) {
+        const users = loadUsers();
+        delete users[session.discord_id];
+        saveUsers(users);
+    }
+    res.json({ ok: true });
+});
+
 // Reset the HWID on the caller's license key (max once per HWID_RESET_DAYS)
 app.post('/api/reset-hwid', authMiddleware, async (req, res) => {
     const session = req.session || {};

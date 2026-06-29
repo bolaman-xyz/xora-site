@@ -486,6 +486,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
         <span>My Products</span>
     </a>
+    <a href="#" class="sidebar-link" onclick="changeKey();return false;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>
+        <span>Use a different key</span>
+    </a>
 
     <div id="docsSection" style="display:none">
         <div class="sidebar-section">Documentation</div>
@@ -890,6 +894,20 @@ function closeModal() { document.getElementById('emailModal').classList.remove('
 function signOut() {
     localStorage.removeItem('od_token');
     window.location.href = '/';
+}
+
+async function changeKey() {
+    if (!confirm('Remove your current key and enter a different one?')) return;
+    try {
+        await fetch('/api/clear-key', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
+    } catch (e) {}
+    currentLookup = null;
+    loadedProducts = [];
+    showGuideLinks([]);
+    setActiveLink(document.querySelector('.sidebar-link'));
+    document.querySelector('.main-header h1').textContent = 'My Products';
+    document.getElementById('userSub').textContent = 'Discord';
+    showEmailPrompt();
 }
 
 (async () => {
