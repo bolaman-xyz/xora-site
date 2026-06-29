@@ -530,7 +530,7 @@ async function submitEmail() {
             const inp = document.getElementById('promptEmail'); if (inp) inp.value = key;
             return;
         }
-        renderProducts(data.products || []);
+        renderProducts(data.products || [], data);
     } catch (e) {
         document.getElementById('content').innerHTML = '<div class="loading-spinner">Verification failed. Try again.</div>';
     }
@@ -664,11 +664,31 @@ function renderGuideStep(step, idx, total) {
     return html;
 }
 
-function renderProducts(products) {
+function renderProducts(products, info) {
     loadedProducts = products || [];
     showGuideLinks(loadedProducts);
     const el = document.getElementById('content');
     if (!products || products.length === 0) {
+        // Key verified but no product matched its subscription — show the sub so it's easy to map.
+        if (info && info.valid) {
+            if (info.subs && info.subs.length) {
+                const subList = info.subs.map(s => `<code style="background:rgba(255,255,255,0.08);padding:2px 8px;border-radius:5px;color:#e0e0ee;">${s}</code>`).join(' ');
+                el.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">${KEY_SVG}</div>
+                        <h2>Key verified — no product mapped yet</h2>
+                        <p>Your key's subscription: ${subList}<br>In the admin panel, add a product whose <strong>KeyAuth Subscription Name</strong> matches this exactly.</p>
+                    </div>`;
+            } else {
+                el.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">${KEY_SVG}</div>
+                        <h2>Key verified — but no subscription detected</h2>
+                        <p>KeyAuth accepted the key but didn't return a subscription name we could read. The key may have no active subscription, or KeyAuth returned it in an unexpected format.</p>
+                    </div>`;
+            }
+            return;
+        }
         el.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">${BOX_SVG}</div>
@@ -755,7 +775,7 @@ async function doLookup() {
         });
         const data = await res.json();
         if (data.valid === false) { showEmailPrompt(); const er = document.getElementById('keyError'); if (er) { er.textContent = data.error || 'That key is invalid or expired.'; er.style.display = 'block'; } return; }
-        renderProducts(data.products || []);
+        renderProducts(data.products || [], data);
     } catch (e) {
         document.getElementById('content').innerHTML = '<div class="loading-spinner">Verification failed. Try again.</div>';
     }
@@ -801,7 +821,7 @@ function signOut() {
                     if (lookupRes.ok) {
                         const lookupData = await lookupRes.json();
                         if (lookupData.valid === false) { showEmailPrompt(); }
-                        else { renderProducts(lookupData.products || []); }
+                        else { renderProducts(lookupData.products || [], lookupData); }
                     } else {
                         showEmailPrompt();
                     }
