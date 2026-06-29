@@ -26,6 +26,15 @@ const USERS_FILE = path.join(DATA_DIR, 'users.json');
 function loadUsers() { try { return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8')); } catch { return {}; } }
 function saveUsers(users) { fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2)); }
 
+// HWID reset cooldown tracking (per license key)
+const RESETS_FILE = path.join(DATA_DIR, 'hwid_resets.json');
+function loadResets() { try { return JSON.parse(fs.readFileSync(RESETS_FILE, 'utf8')); } catch { return {}; } }
+function saveResets(r) { fs.writeFileSync(RESETS_FILE, JSON.stringify(r, null, 2)); }
+const HWID_RESET_DAYS = 30;
+const HWID_RESET_MS = HWID_RESET_DAYS * 24 * 60 * 60 * 1000;
+// KeyAuth seller op used to reset a key's HWID. Adjust if your KeyAuth setup differs.
+const KEYAUTH_RESET_TYPE = process.env.KEYAUTH_RESET_TYPE || 'resetuser';
+
 const sessions = new Map();
 
 function authMiddleware(req, res, next) {
@@ -66,6 +75,7 @@ async function verifyKeyAuthKey(key) {
             subs: [...subs],
             expiry: data.expiry || data.expires || null,
             status: data.status || null,
+            hwid: data.hwid || null,
             raw: data
         };
     } catch (err) {
@@ -171,7 +181,49 @@ app.post('/api/lookup', authMiddleware, async (req, res) => {
 
     const products = productsForSubs(result.subs);
     console.log(`Key verified. Subs: ${result.subs.join(', ') || '(none)'} → ${products.length} product(s)`);
-    res.json({ products, valid: true, subs: result.subs, expiry: result.expiry });
+
+    const resets = loadResets();
+    const lastReset = resets[key] ? new Date(resets[key]).getTime() : 0;
+    const resetNext = lastReset ? new Date(lastReset + HWID_RESET_MS).toISOString() : null;
+
+    res.json({
+        products, valid: true, subs: result.subs,
+        expiry: result.expiry, hwid: result.hwid, key,
+        hwid_reset_next: resetNext, hwid_reset_days: HWID_RESET_DAYS
+    });
+});
+
+// Reset the HWID on the caller's license key (max once per HWID_RESET_DAYS)
+app.post('/api/reset-hwid', authMiddleware, async (req, res) => {
+    const session = req.session || {};
+    const key = (session.key || session.saved_key || (req.body.key || '')).trim();
+    if (!key) return res.status(400).json({ ok: false, error: 'No license key on this session' });
+
+    const resets = loadResets();
+    const last = resets[key] ? new Date(resets[key]).getTime() : 0;
+    const now = Date.now();
+    if (last && now - last < HWID_RESET_MS) {
+        return res.json({ ok: false, rate_limited: true, next: new Date(last + HWID_RESET_MS).toISOString(),
+            error: `HWID can only be reset once every ${HWID_RESET_DAYS} days.` });
+    }
+    if (!KEYAUTH_SELLER_KEY) return res.json({ ok: false, error: 'KeyAuth not configured' });
+
+    try {
+        const url = `https://keyauth.win/api/seller/?sellerkey=${encodeURIComponent(KEYAUTH_SELLER_KEY)}&type=${encodeURIComponent(KEYAUTH_RESET_TYPE)}&user=${encodeURIComponent(key)}`;
+        const r = await fetch(url);
+        const text = await r.text();
+        let data; try { data = JSON.parse(text); } catch { data = { success: false, message: text }; }
+        console.log('KeyAuth reset response:', JSON.stringify(data).substring(0, 400));
+        if (data.success) {
+            resets[key] = new Date().toISOString();
+            saveResets(resets);
+            return res.json({ ok: true, message: data.message || 'HWID reset', next: new Date(now + HWID_RESET_MS).toISOString() });
+        }
+        return res.json({ ok: false, error: data.message || 'KeyAuth could not reset the HWID' });
+    } catch (e) {
+        console.error('Reset HWID error:', e);
+        return res.json({ ok: false, error: 'Could not reach KeyAuth' });
+    }
 });
 
 // Public catalog (admin-defined products)

@@ -154,6 +154,56 @@
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 14px;
         }
+
+        /* License key card (KeyAuth) */
+        .xcol { display: flex; flex-direction: column; gap: 18px; max-width: 520px; }
+        .xcard {
+            background: #0c0c11;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px;
+            padding: 26px 26px 22px;
+        }
+        .xcard-name { font-size: 19px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+        .xcard-status { font-size: 12px; color: #6a6a80; margin-bottom: 18px; }
+        .xcard-status.active { color: #4ade80; }
+        .xkey-row { display: flex; gap: 8px; margin-bottom: 16px; }
+        .xkey {
+            flex: 1; min-width: 0; display: flex; align-items: center; gap: 9px;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 9px; padding: 11px 14px;
+            font-family: 'JetBrains Mono', monospace; font-size: 13.5px; color: #cfcfe0;
+        }
+        .xkey svg { width: 15px; height: 15px; color: #6a6a80; flex-shrink: 0; }
+        .xkey span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .xcopy {
+            width: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 9px; color: #9a9ab0; cursor: pointer; transition: all 0.15s;
+        }
+        .xcopy:hover { background: rgba(255,255,255,0.06); color: #fff; }
+        .xcopy svg { width: 15px; height: 15px; }
+        .xdl {
+            display: flex; align-items: center; justify-content: center; gap: 9px;
+            width: 100%; padding: 13px; margin-bottom: 10px;
+            background: #fff; color: #0a0a0f; border: none; border-radius: 10px;
+            font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer;
+            text-decoration: none; transition: opacity 0.15s;
+        }
+        .xdl:hover { opacity: 0.9; }
+        .xdl.disabled { background: rgba(255,255,255,0.05); color: #55556a; cursor: default; }
+        .xdl svg { width: 16px; height: 16px; }
+        .xreset {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; padding: 12px;
+            background: transparent; color: #b0b0c4;
+            border: 1px solid rgba(255,255,255,0.09); border-radius: 10px;
+            font-size: 13.5px; font-weight: 500; font-family: inherit; cursor: pointer;
+            transition: all 0.15s;
+        }
+        .xreset:hover:not(:disabled) { border-color: rgba(255,255,255,0.18); color: #fff; }
+        .xreset:disabled { opacity: 0.45; cursor: default; }
+        .xreset svg { width: 15px; height: 15px; }
+        .xnote { text-align: center; font-size: 11.5px; color: #4a4a5e; margin-top: 11px; }
         .product-card {
             background: rgba(255,255,255,0.02);
             border: 1px solid rgba(255,255,255,0.05);
@@ -489,6 +539,11 @@ let token = '';
 let user = null;
 let loadedProducts = [];
 let guidesData = {};
+let currentLookup = null;
+
+const COPY_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+const RESET_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>';
+const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>';
 
 const DL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>';
 const KEY_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15.5 7.5 2.3-2.3a1 1 0 0 1 1.4 0l1.1 1.1a1 1 0 0 1 0 1.4L18 10"/><path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/></svg>';
@@ -665,6 +720,7 @@ function renderGuideStep(step, idx, total) {
 }
 
 function renderProducts(products, info) {
+    if (info) currentLookup = info;
     loadedProducts = products || [];
     showGuideLinks(loadedProducts);
     const el = document.getElementById('content');
@@ -702,52 +758,99 @@ function renderProducts(products, info) {
         return;
     }
 
-    el.innerHTML = '<div class="product-grid">' + products.map(p => {
+    const lk = currentLookup || {};
+    const key = lk.key || '';
+    const redeemed = !!lk.hwid;
+    const resetNext = lk.hwid_reset_next ? new Date(lk.hwid_reset_next) : null;
+    const resetLocked = resetNext && resetNext.getTime() > Date.now();
+    const resetDays = lk.hwid_reset_days || 30;
+    const lockedLabel = resetLocked ? resetNext.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+
+    el.innerHTML = '<div class="xcol">' + products.map(p => {
         const name = p.name || 'Untitled';
-        const desc = p.description ? p.description.replace(/<[^>]*>/g, '').substring(0, 100) : '';
-        const img = p.image_url || p.cloudflare_image_id || '';
-        const statusText = p.status_text || 'Available';
-        const st = statusText.toLowerCase();
-        const statusClass = (st.includes('updat') || st.includes('offline')) ? 'ps-yellow' : 'ps-green';
+        const st = (p.status_text || '').toLowerCase();
         const dlLink = p.download_link || '';
-        const variants = p.variants || [];
-        const badgeText = p.badge_text || '';
-        const purchased = p.purchased_at ? new Date(p.purchased_at).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '';
 
-        let imgHtml = img
-            ? `<div class="product-icon"><img src="${img}" alt=""></div>`
-            : `<div class="product-icon">${BOX_SVG}</div>`;
-
-        let btnHtml;
+        let dlBtn;
         if (st.includes('updat')) {
-            btnHtml = `<button class="dl-btn" style="background:rgba(255,255,255,0.04);color:#444458;cursor:default;">Updating...</button>`;
+            dlBtn = `<button class="xdl disabled">${DL_SVG} Updating…</button>`;
         } else if (dlLink) {
-            btnHtml = `<a href="${dlLink}" target="_blank" class="dl-btn">${DL_SVG} Download</a>`;
+            dlBtn = `<a class="xdl" href="${dlLink}" target="_blank">${DL_SVG} Download Loader</a>`;
         } else {
-            btnHtml = `<button class="dl-btn">${DL_SVG} Download</button>`;
+            dlBtn = `<button class="xdl disabled">${DL_SVG} Coming soon</button>`;
         }
 
-        let tagsHtml = '';
-        if (badgeText) tagsHtml += `<span class="ptag">${badgeText}</span>`;
-        variants.forEach(v => { if (v.name) tagsHtml += `<span class="ptag">${v.name}</span>`; });
+        const statusLine = redeemed
+            ? `<div class="xcard-status active">License active · HWID locked</div>`
+            : `<div class="xcard-status">Key not redeemed yet</div>`;
+
+        const keyRow = key ? `
+                <div class="xkey-row">
+                    <div class="xkey">${KEY_SVG}<span>${key}</span></div>
+                    <button class="xcopy" title="Copy key" onclick="copyKey(this)">${COPY_SVG}</button>
+                </div>` : '';
+
+        const resetBtn = `<button class="xreset" onclick="resetHwid(this)" ${resetLocked ? 'disabled' : ''}>${RESET_SVG} ${resetLocked ? 'Reset HWID · available ' + lockedLabel : 'Reset HWID'}</button>`;
 
         return `
-            <div class="product-card">
-                <div class="product-top">
-                    ${imgHtml}
-                    <div class="product-status ${statusClass}"><span class="dot"></span>${statusText}</div>
-                </div>
-                <div class="product-name">${name}</div>
-                <div class="product-desc">${desc}</div>
-                <div class="product-meta">
-                    ${purchased ? `<span class="pm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${purchased}</span>` : ''}
-                </div>
-                <div class="product-bottom">
-                    <div class="product-tags">${tagsHtml}</div>
-                    ${btnHtml}
-                </div>
+            <div class="xcard">
+                <div class="xcard-name">${name}</div>
+                ${statusLine}
+                ${keyRow}
+                ${dlBtn}
+                ${resetBtn}
+                <div class="xnote">Can be used once every ${resetDays} days.</div>
             </div>`;
     }).join('') + '</div>';
+}
+
+function copyKey(btn) {
+    const key = (currentLookup && currentLookup.key) || '';
+    if (!key) return;
+    navigator.clipboard.writeText(key).then(() => {
+        const prev = btn.innerHTML;
+        btn.innerHTML = CHECK_SVG;
+        setTimeout(() => { btn.innerHTML = prev; }, 1200);
+    }).catch(() => {});
+}
+
+async function refreshKey() {
+    if (!currentLookup || !currentLookup.key) return;
+    try {
+        const res = await fetch('/api/lookup', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: currentLookup.key })
+        });
+        const data = await res.json();
+        renderProducts(data.products || [], data);
+    } catch (e) {}
+}
+
+async function resetHwid(btn) {
+    if (btn && btn.disabled) return;
+    const days = (currentLookup && currentLookup.hwid_reset_days) || 30;
+    if (!confirm(`Reset your HWID? This can only be done once every ${days} days.`)) return;
+    if (btn) { btn.disabled = true; btn.innerHTML = `${RESET_SVG} Resetting…`; }
+    try {
+        const res = await fetch('/api/reset-hwid', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: '{}'
+        });
+        const data = await res.json();
+        if (data.ok) {
+            alert('✓ HWID reset successfully. You can now run the loader on this PC.');
+        } else if (data.rate_limited) {
+            const when = data.next ? new Date(data.next).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+            alert(`${data.error}${when ? '\nNext reset available: ' + when : ''}`);
+        } else {
+            alert(data.error || 'Could not reset HWID. Try again later.');
+        }
+    } catch (e) {
+        alert('Reset failed. Please try again.');
+    }
+    await refreshKey();
 }
 
 function updateUser(data) {
