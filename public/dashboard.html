@@ -164,7 +164,18 @@
             border-radius: 16px;
             padding: 26px 26px 22px;
         }
-        .xcard-name { font-size: 19px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+        .xcard-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+        .xcard-name { font-size: 19px; font-weight: 700; color: #fff; }
+        .xstatus {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+            padding: 4px 9px; border-radius: 6px; white-space: nowrap; flex-shrink: 0;
+        }
+        .xstatus.ok { color: #4ade80; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.22); }
+        .xstatus.warn { color: #fbbf24; background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.22); }
+        .xstatus .xdot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .xmeta { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: #7a7a90; margin: 10px 0 4px; }
+        .xmeta svg { width: 14px; height: 14px; opacity: 0.7; }
         .xcard-status { font-size: 12px; color: #6a6a80; margin-bottom: 18px; }
         .xcard-status.active { color: #4ade80; }
         .xkey-row { display: flex; gap: 8px; margin-bottom: 16px; }
@@ -549,6 +560,26 @@ let currentLookup = null;
 const COPY_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
 const RESET_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>';
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>';
+const CLOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+
+function formatExpiry(exp) {
+    if (exp == null || exp === '' || exp === '0' || exp === 0) return null;
+    const n = Number(exp);
+    if (!isNaN(n)) {
+        let ms = null;
+        if (n > 1e12) ms = n;            // unix milliseconds
+        else if (n > 1e9) ms = n * 1000; // unix seconds
+        if (ms) {
+            const d = new Date(ms);
+            const days = Math.ceil((d.getTime() - Date.now()) / 86400000);
+            const ds = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            if (days < 0) return { label: 'Expired', value: ds };
+            return { label: 'Expires', value: `${ds} · ${days} day${days === 1 ? '' : 's'} left` };
+        }
+        return { label: 'Duration', value: `${n} day${n === 1 ? '' : 's'}` };
+    }
+    return { label: 'Expires', value: String(exp) };
+}
 
 const DL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>';
 const KEY_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15.5 7.5 2.3-2.3a1 1 0 0 1 1.4 0l1.1 1.1a1 1 0 0 1 0 1.4L18 10"/><path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/></svg>';
@@ -771,9 +802,14 @@ function renderProducts(products, info) {
     const resetDays = lk.hwid_reset_days || 30;
     const lockedLabel = resetLocked ? resetNext.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
 
+    const exp = formatExpiry(lk.expiry);
+    const expRow = exp ? `<div class="xmeta">${CLOCK_SVG}<span>${exp.label}: ${exp.value}</span></div>` : '';
+
     el.innerHTML = '<div class="xcol">' + products.map(p => {
         const name = p.name || 'Untitled';
-        const st = (p.status_text || '').toLowerCase();
+        const statusText = p.status_text || 'Available';
+        const st = statusText.toLowerCase();
+        const statusClass = (st.includes('updat') || st.includes('offline') || st.includes('down') || st.includes('maint')) ? 'warn' : 'ok';
         const dlLink = p.download_link || '';
 
         let dlBtn;
@@ -799,8 +835,12 @@ function renderProducts(products, info) {
 
         return `
             <div class="xcard">
-                <div class="xcard-name">${name}</div>
+                <div class="xcard-head">
+                    <div class="xcard-name">${name}</div>
+                    <span class="xstatus ${statusClass}"><span class="xdot"></span>${statusText}</span>
+                </div>
                 ${statusLine}
+                ${expRow}
                 ${keyRow}
                 ${dlBtn}
                 ${resetBtn}
