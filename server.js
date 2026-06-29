@@ -219,7 +219,11 @@ app.post('/api/reset-hwid', authMiddleware, async (req, res) => {
             saveResets(resets);
             return res.json({ ok: true, message: data.message || 'HWID reset', next: new Date(now + HWID_RESET_MS).toISOString() });
         }
-        return res.json({ ok: false, error: data.message || 'KeyAuth could not reset the HWID' });
+        let msg = data.message || 'KeyAuth could not reset the HWID';
+        if (/find user|not found|no user|doesn'?t exist/i.test(msg)) {
+            msg = "This key hasn't been activated in the loader yet, so there's no HWID to reset. Run the loader once with it, then try again.";
+        }
+        return res.json({ ok: false, error: msg });
     } catch (e) {
         console.error('Reset HWID error:', e);
         return res.json({ ok: false, error: 'Could not reach KeyAuth' });
