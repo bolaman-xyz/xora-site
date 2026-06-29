@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const multer = require('multer');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -34,6 +35,21 @@ const HWID_RESET_DAYS = 30;
 const HWID_RESET_MS = HWID_RESET_DAYS * 24 * 60 * 60 * 1000;
 // KeyAuth seller op used to reset a key's HWID. Adjust if your KeyAuth setup differs.
 const KEYAUTH_RESET_TYPE = process.env.KEYAUTH_RESET_TYPE || 'resetuser';
+
+// Uploaded loader files live on the volume so they persist across deploys
+const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+const upload = multer({
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => {
+            const dir = path.join(UPLOADS_DIR, req.params.id);
+            fs.mkdirSync(dir, { recursive: true });
+            cb(null, dir);
+        },
+        filename: (req, file, cb) => cb(null, (file.originalname || 'file').replace(/[^\w.\-]+/g, '_'))
+    }),
+    limits: { fileSize: 500 * 1024 * 1024 } // 500 MB
+});
 
 const sessions = new Map();
 
@@ -298,7 +314,45 @@ app.delete('/api/admin/product/:id', authMiddleware, (req, res) => {
     const data = loadData();
     if (data.products) delete data.products[req.params.id];
     saveData(data);
+    try { fs.rmSync(path.join(UPLOADS_DIR, req.params.id), { recursive: true, force: true }); } catch {}
     res.json({ ok: true });
+});
+
+// Upload a loader file for a product (becomes its download)
+app.post('/api/admin/upload/:id', authMiddleware, (req, res) => {
+    if (req.session.type !== 'admin') return res.status(403).json({ error: 'Not admin' });
+    const data = loadData();
+    if (!data.products || !data.products[req.params.id]) return res.status(404).json({ error: 'Product not found — save it first' });
+    upload.single('file')(req, res, (err) => {
+        if (err) return res.status(400).json({ error: err.message });
+        if (!req.file) return res.status(400).json({ error: 'No file received' });
+        const dir = path.join(UPLOADS_DIR, req.params.id);
+        // keep only the newest file
+        for (const f of fs.readdirSync(dir)) {
+            if (f !== req.file.filename) { try { fs.unlinkSync(path.join(dir, f)); } catch {} }
+        }
+        const d = loadData();
+        d.products[req.params.id] = {
+            ...d.products[req.params.id],
+            download_file: req.file.filename,
+            download_link: '/download/' + req.params.id,
+            link_source: 'admin',
+            link_updated_at: new Date().toISOString(),
+            link_updated_by: 'Admin Upload'
+        };
+        saveData(d);
+        res.json({ ok: true, file: req.file.filename });
+    });
+});
+
+// Public download of an uploaded loader file
+app.get('/download/:id', (req, res) => {
+    const data = loadData();
+    const p = data.products && data.products[req.params.id];
+    if (!p || !p.download_file) return res.status(404).send('File not found');
+    const filePath = path.join(UPLOADS_DIR, req.params.id, p.download_file);
+    if (!fs.existsSync(filePath)) return res.status(404).send('File not found');
+    res.download(filePath, p.download_file);
 });
 
 app.put('/api/admin/guide/:slug', authMiddleware, (req, res) => {
