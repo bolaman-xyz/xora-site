@@ -562,10 +562,10 @@ const RESET_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>';
 const CLOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
 
-function formatExpiry(exp) {
-    if (exp == null || exp === '' || exp === '0' || exp === 0) return null;
+function formatExpiry(exp, timeleft) {
+    // Absolute expiry (unix timestamp) takes priority
     const n = Number(exp);
-    if (!isNaN(n)) {
+    if (exp != null && exp !== '' && exp !== '0' && exp !== 0 && !isNaN(n)) {
         let ms = null;
         if (n > 1e12) ms = n;            // unix milliseconds
         else if (n > 1e9) ms = n * 1000; // unix seconds
@@ -576,9 +576,16 @@ function formatExpiry(exp) {
             if (days < 0) return { label: 'Expired', value: ds };
             return { label: 'Expires', value: `${ds} · ${days} day${days === 1 ? '' : 's'} left` };
         }
+        // small number → duration in days
         return { label: 'Duration', value: `${n} day${n === 1 ? '' : 's'}` };
     }
-    return { label: 'Expires', value: String(exp) };
+    // Fallback: seconds of time remaining
+    const tl = Number(timeleft);
+    if (timeleft != null && timeleft !== '' && !isNaN(tl) && tl > 0) {
+        const days = Math.ceil(tl / 86400);
+        return { label: 'Time left', value: `${days} day${days === 1 ? '' : 's'}` };
+    }
+    return null;
 }
 
 const DL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>';
@@ -802,7 +809,7 @@ function renderProducts(products, info) {
     const resetDays = lk.hwid_reset_days || 30;
     const lockedLabel = resetLocked ? resetNext.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
 
-    const exp = formatExpiry(lk.expiry);
+    const exp = formatExpiry(lk.expiry, lk.timeleft);
     const expRow = exp ? `<div class="xmeta">${CLOCK_SVG}<span>${exp.label}: ${exp.value}</span></div>` : '';
 
     el.innerHTML = '<div class="xcol">' + products.map(p => {

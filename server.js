@@ -110,10 +110,28 @@ async function verifyKeyAuthKey(key) {
         add(data.subscription_name);
         if (Array.isArray(data.subscriptions)) data.subscriptions.forEach(s => add(s && (s.subscription || s.name || s)));
 
+        // Pick the first meaningful (non-empty, non-zero) value
+        const pick = (...vals) => {
+            for (const v of vals) {
+                if (v === undefined || v === null || v === '' || v === 0 || v === '0') continue;
+                return v;
+            }
+            return null;
+        };
+        let subExpiry = null, subTimeLeft = null;
+        if (Array.isArray(data.subscriptions) && data.subscriptions.length) {
+            subExpiry = data.subscriptions[0].expiry;
+            subTimeLeft = data.subscriptions[0].timeleft;
+        }
+        const expiry = pick(data.expiry, data.expires, data.expire, subExpiry, data.duration);
+        const timeleft = pick(data.timeleft, subTimeLeft);
+        console.log('KeyAuth time fields → expiry:', expiry, '| timeleft:', timeleft, '| status:', data.status);
+
         return {
             valid: true,
             subs: [...subs],
-            expiry: data.expiry || data.expires || null,
+            expiry,
+            timeleft,
             status: data.status || null,
             hwid: data.hwid || null,
             raw: data
@@ -233,7 +251,7 @@ app.post('/api/lookup', authMiddleware, async (req, res) => {
 
     res.json({
         products, valid: true, subs: result.subs,
-        expiry: result.expiry, hwid: result.hwid, key,
+        expiry: result.expiry, timeleft: result.timeleft, hwid: result.hwid, key,
         hwid_reset_next: resetNext, hwid_reset_days: HWID_RESET_DAYS
     });
 });
