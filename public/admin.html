@@ -316,6 +316,11 @@
             <div class="hint">Which KeyAuth account this product's keys belong to. Pick <strong>Any</strong> unless the same subscription number is reused across different seller keys.</div>
         </div>
         <div class="field">
+            <label>Detect by Keyword (no seller key)</label>
+            <input type="text" id="editKeywords" placeholder="e.g. BO7, VOID-BO7">
+            <div class="hint">⚠️ For products where you <strong>don't have the seller key</strong>. If the customer's key contains any of these words, this product shows with its download — <strong>no validation</strong> (no expiry / HWID reset). Separate multiple with commas. Leave blank to use KeyAuth only.</div>
+        </div>
+        <div class="field">
             <label>Description</label>
             <input type="text" id="editDesc" placeholder="Short one-line description">
         </div>
@@ -493,6 +498,7 @@ function fillProductForm(p) {
     document.getElementById('editName').value = p.name || '';
     document.getElementById('editSub').value = p.sub || '';
     populateSellerSelect(p.seller || '');
+    document.getElementById('editKeywords').value = p.keywords || '';
     document.getElementById('editDesc').value = p.description || '';
     document.getElementById('editImage').value = p.image_url || '';
     document.getElementById('editLink').value = p.download_link || '';
@@ -568,6 +574,7 @@ async function saveProduct() {
         name,
         sub: document.getElementById('editSub').value.trim(),
         seller: document.getElementById('editSeller').value.trim(),
+        keywords: document.getElementById('editKeywords').value.trim(),
         description: document.getElementById('editDesc').value.trim(),
         image_url: document.getElementById('editImage').value.trim(),
         download_link: document.getElementById('editLink').value.trim(),

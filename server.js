@@ -185,6 +185,23 @@ async function verifyKeyWithSeller(key, seller) {
     }
 }
 
+// Returns catalog products detected purely by keyword(s) in the license key text.
+// No KeyAuth validation — used for products where you don't have the seller key.
+function productsForKey(key) {
+    const config = loadData();
+    const catalog = config.products || {};
+    const k = String(key || '').toLowerCase();
+    const out = [];
+    for (const [id, p] of Object.entries(catalog)) {
+        if (!p || typeof p !== 'object') continue;
+        const kws = String(p.keywords || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+        if (kws.length && kws.some(kw => k.includes(kw))) {
+            out.push({ ...p, id, _id: id, variants: p.variants || [] });
+        }
+    }
+    return out;
+}
+
 // Returns catalog products whose `sub` matches any of the given subscription names.
 // If a product is tagged with a specific `seller`, it only matches when the key was
 // verified against that same seller — this prevents a level "1" on one KeyAuth account
@@ -268,8 +285,25 @@ app.post('/api/lookup', authMiddleware, async (req, res) => {
     const key = (req.body.key || '').trim();
     if (!key) return res.status(400).json({ error: 'License key required' });
 
+    // Keyword-detected products: matched purely on text in the key, no KeyAuth needed.
+    const kwProducts = productsForKey(key);
+
+    // KeyAuth-validated products (for keys where we have the seller key).
     const result = await verifyKeyAuthKey(key);
-    if (!result.valid) {
+    const subProducts = result.valid ? productsForSubs(result.subs, result.seller_label) : [];
+
+    // Merge both sources, de-duplicated by product id.
+    const seen = new Set();
+    const products = [];
+    for (const p of [...subProducts, ...kwProducts]) {
+        const pid = String(p._id || p.id);
+        if (seen.has(pid)) continue;
+        seen.add(pid);
+        products.push(p);
+    }
+
+    // If KeyAuth rejected the key AND no keyword product matched, it's a bad key.
+    if (!result.valid && kwProducts.length === 0) {
         logEvent('❌ Invalid key attempt', [
             { name: 'User', value: sessionName(req.session), inline: false },
             { name: 'Key', value: key },
@@ -293,15 +327,14 @@ app.post('/api/lookup', authMiddleware, async (req, res) => {
         }
     }
 
-    const products = productsForSubs(result.subs, result.seller_label);
-    console.log(`Key verified [${result.seller_label}]. Subs: ${result.subs.join(', ') || '(none)'} → ${products.length} product(s)`);
+    console.log(`Key lookup [${result.valid ? result.seller_label : 'keyword-only'}]. Subs: ${(result.subs || []).join(', ') || '(none)'} → ${subProducts.length} sub + ${kwProducts.length} keyword = ${products.length} product(s)`);
 
     const resets = loadResets();
     const lastReset = resets[key] ? new Date(resets[key]).getTime() : 0;
     const resetNext = lastReset ? new Date(lastReset + HWID_RESET_MS).toISOString() : null;
 
     res.json({
-        products, valid: true, subs: result.subs,
+        products, valid: true, subs: result.subs || [],
         expiry: result.expiry, timeleft: result.timeleft, used: result.used, hwid: result.hwid, key,
         hwid_reset_next: resetNext, hwid_reset_days: HWID_RESET_DAYS
     });
