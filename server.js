@@ -7,8 +7,29 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ── KeyAuth (seller API) ──
-// Seller key is read-only here: we only look up a key's subscription, never bind HWID.
-const KEYAUTH_SELLER_KEY = process.env.KEYAUTH_SELLER_KEY;
+// Seller keys are read-only here: we only look up a key's subscription, never bind HWID.
+// Multiple seller keys are supported so products from different KeyAuth accounts can
+// live on the same site. Configure them via env:
+//   KEYAUTH_SELLER_KEY        + optional KEYAUTH_SELLER_LABEL   (default label "Main")
+//   KEYAUTH_SELLER_KEY_2..10  + optional KEYAUTH_SELLER_LABEL_2..10
+function buildSellers() {
+    const list = [];
+    const push = (key, label, fallback) => {
+        if (key && String(key).trim()) list.push({ key: String(key).trim(), label: (label && label.trim()) || fallback });
+    };
+    push(process.env.KEYAUTH_SELLER_KEY, process.env.KEYAUTH_SELLER_LABEL, 'Main');
+    for (let i = 2; i <= 10; i++) {
+        push(process.env['KEYAUTH_SELLER_KEY_' + i], process.env['KEYAUTH_SELLER_LABEL_' + i], 'Seller ' + i);
+    }
+    return list;
+}
+const SELLERS = buildSellers();
+// Back-compat alias (first seller key)
+const KEYAUTH_SELLER_KEY = SELLERS[0] && SELLERS[0].key;
+function sellerByLabel(label) {
+    if (!label) return null;
+    return SELLERS.find(s => s.label.toLowerCase() === String(label).toLowerCase()) || null;
+}
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'changeme';
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
@@ -91,14 +112,27 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Looks up a license key via the KeyAuth Seller API and returns the
 // subscription name(s) attached to it. Read-only — does not bind HWID.
 async function verifyKeyAuthKey(key) {
-    if (!KEYAUTH_SELLER_KEY) return { valid: false, subs: [], error: 'KeyAuth not configured (missing KEYAUTH_SELLER_KEY)' };
+    if (!SELLERS.length) return { valid: false, subs: [], error: 'KeyAuth not configured (missing KEYAUTH_SELLER_KEY)' };
+
+    // A license key only validates against the seller account it belongs to, so we
+    // try each configured seller key until one recognizes it.
+    let lastError = 'Invalid or expired key';
+    for (const seller of SELLERS) {
+        const attempt = await verifyKeyWithSeller(key, seller);
+        if (attempt.valid) return attempt;
+        if (attempt.error) lastError = attempt.error;
+    }
+    return { valid: false, subs: [], error: lastError };
+}
+
+async function verifyKeyWithSeller(key, seller) {
     try {
-        const url = `https://keyauth.win/api/seller/?sellerkey=${encodeURIComponent(KEYAUTH_SELLER_KEY)}&type=info&key=${encodeURIComponent(key)}`;
+        const url = `https://keyauth.win/api/seller/?sellerkey=${encodeURIComponent(seller.key)}&type=info&key=${encodeURIComponent(key)}`;
         const r = await fetch(url);
         const text = await r.text();
         let data;
         try { data = JSON.parse(text); } catch { return { valid: false, subs: [], error: 'Unexpected response from KeyAuth', raw: text }; }
-        console.log('KeyAuth info response:', JSON.stringify(data).substring(0, 600));
+        console.log(`KeyAuth info response [${seller.label}]:`, JSON.stringify(data).substring(0, 600));
         if (!data.success) return { valid: false, subs: [], error: data.message || 'Invalid or expired key', raw: data };
 
         // Collect every candidate subscription identifier KeyAuth might return,
@@ -141,6 +175,8 @@ async function verifyKeyAuthKey(key) {
             used,
             status: data.status || null,
             hwid: hwid || null,
+            seller_label: seller.label,
+            seller_key: seller.key,
             raw: data
         };
     } catch (err) {
@@ -150,13 +186,19 @@ async function verifyKeyAuthKey(key) {
 }
 
 // Returns catalog products whose `sub` matches any of the given subscription names.
-function productsForSubs(subs) {
+// If a product is tagged with a specific `seller`, it only matches when the key was
+// verified against that same seller — this prevents a level "1" on one KeyAuth account
+// from unlocking a different product that also uses level "1" on another account.
+function productsForSubs(subs, sellerLabel) {
     const config = loadData();
     const catalog = config.products || {};
     const wanted = (subs || []).map(s => String(s).toLowerCase());
+    const sl = sellerLabel ? String(sellerLabel).toLowerCase() : '';
     const out = [];
     for (const [id, p] of Object.entries(catalog)) {
         if (!p || typeof p !== 'object') continue;
+        const pSeller = String(p.seller || '').trim().toLowerCase();
+        if (pSeller && sl && pSeller !== sl) continue; // product locked to a different seller
         const psubs = String(p.sub || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
         if (psubs.length && psubs.some(ps => wanted.includes(ps))) {
             out.push({ ...p, id, _id: id, variants: p.variants || [] });
@@ -242,6 +284,8 @@ app.post('/api/lookup', authMiddleware, async (req, res) => {
     if (session) {
         session.key = key;
         session.saved_key = key;
+        session.seller_key = result.seller_key || null;
+        session.seller_label = result.seller_label || null;
         if (session.discord_id) {
             const users = loadUsers();
             users[session.discord_id] = key;
@@ -249,8 +293,8 @@ app.post('/api/lookup', authMiddleware, async (req, res) => {
         }
     }
 
-    const products = productsForSubs(result.subs);
-    console.log(`Key verified. Subs: ${result.subs.join(', ') || '(none)'} → ${products.length} product(s)`);
+    const products = productsForSubs(result.subs, result.seller_label);
+    console.log(`Key verified [${result.seller_label}]. Subs: ${result.subs.join(', ') || '(none)'} → ${products.length} product(s)`);
 
     const resets = loadResets();
     const lastReset = resets[key] ? new Date(resets[key]).getTime() : 0;
@@ -301,10 +345,23 @@ app.post('/api/reset-hwid', authMiddleware, async (req, res) => {
         return res.json({ ok: false, rate_limited: true, next: new Date(last + HWID_RESET_MS).toISOString(),
             error: `HWID can only be reset once every ${HWID_RESET_DAYS} days.` });
     }
-    if (!KEYAUTH_SELLER_KEY) return res.json({ ok: false, error: 'KeyAuth not configured' });
+    if (!SELLERS.length) return res.json({ ok: false, error: 'KeyAuth not configured' });
+
+    // Reset must target the same seller account the key belongs to. Use the one saved
+    // on the session; if missing (e.g. after a restart), re-discover it by verifying.
+    let sellerKey = session.seller_key;
+    if (!sellerKey) {
+        const check = await verifyKeyAuthKey(key);
+        if (check.valid && check.seller_key) {
+            sellerKey = check.seller_key;
+            session.seller_key = check.seller_key;
+            session.seller_label = check.seller_label;
+        }
+    }
+    if (!sellerKey) sellerKey = SELLERS[0].key; // last-resort fallback
 
     try {
-        const url = `https://keyauth.win/api/seller/?sellerkey=${encodeURIComponent(KEYAUTH_SELLER_KEY)}&type=${encodeURIComponent(KEYAUTH_RESET_TYPE)}&user=${encodeURIComponent(key)}`;
+        const url = `https://keyauth.win/api/seller/?sellerkey=${encodeURIComponent(sellerKey)}&type=${encodeURIComponent(KEYAUTH_RESET_TYPE)}&user=${encodeURIComponent(key)}`;
         const r = await fetch(url);
         const text = await r.text();
         let data; try { data = JSON.parse(text); } catch { data = { success: false, message: text }; }
@@ -351,6 +408,12 @@ app.post('/api/admin/login', (req, res) => {
 app.get('/api/admin/config', authMiddleware, (req, res) => {
     if (req.session.type !== 'admin') return res.status(403).json({ error: 'Not admin' });
     res.json(loadData());
+});
+
+// List configured KeyAuth seller accounts (labels only — never expose the keys)
+app.get('/api/admin/sellers', authMiddleware, (req, res) => {
+    if (req.session.type !== 'admin') return res.status(403).json({ error: 'Not admin' });
+    res.json({ sellers: SELLERS.map(s => s.label) });
 });
 
 // Create a new catalog product
@@ -476,6 +539,7 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`Running on port ${PORT}`);
     const onVolume = process.env.DATA_DIR ? 'set' : 'NOT SET (data will be wiped on redeploy — set DATA_DIR + attach a volume)';
     console.log(`DATA_DIR = ${DATA_DIR}  | DATA_DIR env: ${onVolume}`);
+    console.log(`KeyAuth sellers (${SELLERS.length}): ${SELLERS.map(s => s.label).join(', ') || '(none configured)'}`);
 });
 
 // ── Discord Bot ──

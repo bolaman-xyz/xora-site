@@ -310,6 +310,11 @@
             <input type="text" id="editSub" placeholder="e.g. fortnite_ext">
             <div class="hint">Enter the value the dashboard shows after "Your key's subscription:" when a key is entered. For most KeyAuth setups this is the subscription's <strong>Level number</strong> (e.g. <code>2</code>), not its name. Separate multiple with commas.</div>
         </div>
+        <div class="field" id="sellerField" style="display:none;">
+            <label>Seller Key (KeyAuth account)</label>
+            <select id="editSeller" style="width:100%;padding:10px 12px;background:#12121c;border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#d4d4e4;font-size:13px;font-family:inherit;outline:none;"></select>
+            <div class="hint">Which KeyAuth account this product's keys belong to. Pick <strong>Any</strong> unless the same subscription number is reused across different seller keys.</div>
+        </div>
         <div class="field">
             <label>Description</label>
             <input type="text" id="editDesc" placeholder="Short one-line description">
@@ -431,6 +436,7 @@ async function loadAdminData() {
         const prodData = await prodRes.json();
         products = prodData.data || [];
         config = await confRes.json();
+        await loadSellers();
         renderProducts();
         renderGuides();
     } catch(e) { console.error(e); }
@@ -463,9 +469,30 @@ function renderProducts() {
     }).join('');
 }
 
+let sellersList = [];
+async function loadSellers() {
+    try {
+        const res = await fetch('/api/admin/sellers', { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        sellersList = data.sellers || [];
+    } catch (e) { sellersList = []; }
+}
+function populateSellerSelect(selected) {
+    const sel = document.getElementById('editSeller');
+    const field = document.getElementById('sellerField');
+    if (!sel || !field) return;
+    // Only show the dropdown when more than one seller key is configured
+    if (sellersList.length <= 1) { field.style.display = 'none'; sel.innerHTML = ''; return; }
+    field.style.display = '';
+    sel.innerHTML = '<option value="">Any seller</option>' +
+        sellersList.map(s => `<option value="${s.replace(/"/g,'&quot;')}">${s}</option>`).join('');
+    sel.value = selected || '';
+}
+
 function fillProductForm(p) {
     document.getElementById('editName').value = p.name || '';
     document.getElementById('editSub').value = p.sub || '';
+    populateSellerSelect(p.seller || '');
     document.getElementById('editDesc').value = p.description || '';
     document.getElementById('editImage').value = p.image_url || '';
     document.getElementById('editLink').value = p.download_link || '';
@@ -540,6 +567,7 @@ async function saveProduct() {
     const body = {
         name,
         sub: document.getElementById('editSub').value.trim(),
+        seller: document.getElementById('editSeller').value.trim(),
         description: document.getElementById('editDesc').value.trim(),
         image_url: document.getElementById('editImage').value.trim(),
         download_link: document.getElementById('editLink').value.trim(),
