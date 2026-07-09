@@ -35,20 +35,30 @@ function savedSellers() {
             .map(s => ({ key: String(s.key).trim(), label: (s.label && String(s.label).trim()) || 'Saved', id: s.id, saved: true }));
     } catch { return []; }
 }
-// Full seller list = env sellers + admin-saved sellers, de-duplicated by key.
+// Full seller list = env sellers + admin-saved sellers, merged by key value.
+// When the same physical seller key exists under two labels (e.g. an env "Seller 2"
+// and a panel-saved "FORT"), we keep ONE entry: the panel label wins for display,
+// and every label seen for that key is kept in `aliases` so products tagged with any
+// of them still match at verification time.
 function getSellers() {
-    const out = [];
-    const seen = new Set();
-    for (const s of [...ENV_SELLERS, ...savedSellers()]) {
-        if (seen.has(s.key)) continue;
-        seen.add(s.key);
-        out.push(s);
-    }
-    return out;
+    const byKey = new Map();
+    const add = (s, panel) => {
+        const key = s.key;
+        if (!byKey.has(key)) {
+            byKey.set(key, { key, label: s.label, aliases: new Set([s.label]) });
+        }
+        const e = byKey.get(key);
+        e.aliases.add(s.label);
+        if (panel) { e.label = s.label; e.id = s.id; e.saved = true; } // panel label wins
+    };
+    ENV_SELLERS.forEach(s => add(s, false));
+    savedSellers().forEach(s => add(s, true));
+    return [...byKey.values()].map(e => ({ ...e, aliases: [...e.aliases] }));
 }
 function sellerByLabel(label) {
     if (!label) return null;
-    return getSellers().find(s => s.label.toLowerCase() === String(label).toLowerCase()) || null;
+    const l = String(label).toLowerCase();
+    return getSellers().find(s => (s.aliases || [s.label]).some(a => String(a).toLowerCase() === l)) || null;
 }
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'changeme';
@@ -197,6 +207,7 @@ async function verifyKeyWithSeller(key, seller) {
             status: data.status || null,
             hwid: hwid || null,
             seller_label: seller.label,
+            seller_aliases: seller.aliases || [seller.label],
             seller_key: seller.key,
             raw: data
         };
@@ -227,16 +238,19 @@ function productsForKey(key) {
 // If a product is tagged with a specific `seller`, it only matches when the key was
 // verified against that same seller — this prevents a level "1" on one KeyAuth account
 // from unlocking a different product that also uses level "1" on another account.
-function productsForSubs(subs, sellerLabel) {
+function productsForSubs(subs, sellerLabels) {
     const config = loadData();
     const catalog = config.products || {};
     const wanted = (subs || []).map(s => String(s).toLowerCase());
-    const sl = sellerLabel ? String(sellerLabel).toLowerCase() : '';
+    // A key can validate under one seller that has several labels (env + panel alias).
+    // A product's `seller` matches if it equals ANY of them.
+    const accepted = (Array.isArray(sellerLabels) ? sellerLabels : [sellerLabels])
+        .filter(Boolean).map(x => String(x).toLowerCase());
     const out = [];
     for (const [id, p] of Object.entries(catalog)) {
         if (!p || typeof p !== 'object') continue;
         const pSeller = String(p.seller || '').trim().toLowerCase();
-        if (pSeller && sl && pSeller !== sl) continue; // product locked to a different seller
+        if (pSeller && accepted.length && !accepted.includes(pSeller)) continue; // locked to a different seller
         const psubs = String(p.sub || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
         if (psubs.length && psubs.some(ps => wanted.includes(ps))) {
             out.push({ ...p, id, _id: id, variants: p.variants || [] });
@@ -311,7 +325,7 @@ app.post('/api/lookup', authMiddleware, async (req, res) => {
 
     // KeyAuth-validated products (for keys where we have the seller key).
     const result = await verifyKeyAuthKey(key);
-    const subProducts = result.valid ? productsForSubs(result.subs, result.seller_label) : [];
+    const subProducts = result.valid ? productsForSubs(result.subs, [result.seller_label, ...(result.seller_aliases || [])]) : [];
 
     // Merge both sources, de-duplicated by product id.
     const seen = new Set();
