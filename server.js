@@ -23,12 +23,32 @@ function buildSellers() {
     }
     return list;
 }
-const SELLERS = buildSellers();
-// Back-compat alias (first seller key)
-const KEYAUTH_SELLER_KEY = SELLERS[0] && SELLERS[0].key;
+// Seller keys from env are static. Admins can also save labeled seller keys in the
+// panel (stored in config.json under `sellerKeys`); those are merged in at request time.
+const ENV_SELLERS = buildSellers();
+function savedSellers() {
+    try {
+        const d = loadData();
+        const list = Array.isArray(d.sellerKeys) ? d.sellerKeys : [];
+        return list
+            .filter(s => s && s.key && String(s.key).trim())
+            .map(s => ({ key: String(s.key).trim(), label: (s.label && String(s.label).trim()) || 'Saved', id: s.id, saved: true }));
+    } catch { return []; }
+}
+// Full seller list = env sellers + admin-saved sellers, de-duplicated by key.
+function getSellers() {
+    const out = [];
+    const seen = new Set();
+    for (const s of [...ENV_SELLERS, ...savedSellers()]) {
+        if (seen.has(s.key)) continue;
+        seen.add(s.key);
+        out.push(s);
+    }
+    return out;
+}
 function sellerByLabel(label) {
     if (!label) return null;
-    return SELLERS.find(s => s.label.toLowerCase() === String(label).toLowerCase()) || null;
+    return getSellers().find(s => s.label.toLowerCase() === String(label).toLowerCase()) || null;
 }
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'changeme';
@@ -112,12 +132,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Looks up a license key via the KeyAuth Seller API and returns the
 // subscription name(s) attached to it. Read-only — does not bind HWID.
 async function verifyKeyAuthKey(key) {
-    if (!SELLERS.length) return { valid: false, subs: [], error: 'KeyAuth not configured (missing KEYAUTH_SELLER_KEY)' };
+    const sellers = getSellers();
+    if (!sellers.length) return { valid: false, subs: [], error: 'KeyAuth not configured (add a seller key in the admin panel or set KEYAUTH_SELLER_KEY)' };
 
     // A license key only validates against the seller account it belongs to, so we
     // try each configured seller key until one recognizes it.
     let lastError = 'Invalid or expired key';
-    for (const seller of SELLERS) {
+    for (const seller of sellers) {
         const attempt = await verifyKeyWithSeller(key, seller);
         if (attempt.valid) return attempt;
         if (attempt.error) lastError = attempt.error;
@@ -378,7 +399,8 @@ app.post('/api/reset-hwid', authMiddleware, async (req, res) => {
         return res.json({ ok: false, rate_limited: true, next: new Date(last + HWID_RESET_MS).toISOString(),
             error: `HWID can only be reset once every ${HWID_RESET_DAYS} days.` });
     }
-    if (!SELLERS.length) return res.json({ ok: false, error: 'KeyAuth not configured' });
+    const sellers = getSellers();
+    if (!sellers.length) return res.json({ ok: false, error: 'KeyAuth not configured' });
 
     // Reset must target the same seller account the key belongs to. Use the one saved
     // on the session; if missing (e.g. after a restart), re-discover it by verifying.
@@ -391,7 +413,7 @@ app.post('/api/reset-hwid', authMiddleware, async (req, res) => {
             session.seller_label = check.seller_label;
         }
     }
-    if (!sellerKey) sellerKey = SELLERS[0].key; // last-resort fallback
+    if (!sellerKey) sellerKey = sellers[0].key; // last-resort fallback
 
     try {
         const url = `https://keyauth.win/api/seller/?sellerkey=${encodeURIComponent(sellerKey)}&type=${encodeURIComponent(KEYAUTH_RESET_TYPE)}&user=${encodeURIComponent(key)}`;
@@ -446,7 +468,45 @@ app.get('/api/admin/config', authMiddleware, (req, res) => {
 // List configured KeyAuth seller accounts (labels only — never expose the keys)
 app.get('/api/admin/sellers', authMiddleware, (req, res) => {
     if (req.session.type !== 'admin') return res.status(403).json({ error: 'Not admin' });
-    res.json({ sellers: SELLERS.map(s => s.label) });
+    res.json({ sellers: getSellers().map(s => s.label) });
+});
+
+// ── Saved seller keys ──
+// Admin-managed KeyAuth seller keys, stored in config.json. The raw key is never
+// returned to the browser — only the label and a masked hint (last 4 chars).
+function maskKey(k) {
+    const s = String(k || '');
+    return '••••••••' + s.slice(-4);
+}
+app.get('/api/admin/seller-keys', authMiddleware, (req, res) => {
+    if (req.session.type !== 'admin') return res.status(403).json({ error: 'Not admin' });
+    const d = loadData();
+    const list = Array.isArray(d.sellerKeys) ? d.sellerKeys : [];
+    res.json({ keys: list.map(s => ({ id: s.id, label: s.label, masked: maskKey(s.key) })) });
+});
+
+app.post('/api/admin/seller-keys', authMiddleware, (req, res) => {
+    if (req.session.type !== 'admin') return res.status(403).json({ error: 'Not admin' });
+    const label = (req.body.label || '').trim();
+    const key = (req.body.key || '').trim();
+    if (!label) return res.status(400).json({ error: 'Label required' });
+    if (!key) return res.status(400).json({ error: 'Seller key required' });
+    const d = loadData();
+    if (!Array.isArray(d.sellerKeys)) d.sellerKeys = [];
+    if (d.sellerKeys.some(s => s.label.toLowerCase() === label.toLowerCase()))
+        return res.status(400).json({ error: 'A saved key with that label already exists' });
+    const id = 'sk_' + crypto.randomBytes(5).toString('hex');
+    d.sellerKeys.push({ id, label, key, created_at: new Date().toISOString() });
+    saveData(d);
+    res.json({ ok: true, id, label, masked: maskKey(key) });
+});
+
+app.delete('/api/admin/seller-keys/:id', authMiddleware, (req, res) => {
+    if (req.session.type !== 'admin') return res.status(403).json({ error: 'Not admin' });
+    const d = loadData();
+    if (Array.isArray(d.sellerKeys)) d.sellerKeys = d.sellerKeys.filter(s => s.id !== req.params.id);
+    saveData(d);
+    res.json({ ok: true });
 });
 
 // Create a new catalog product
@@ -572,7 +632,8 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`Running on port ${PORT}`);
     const onVolume = process.env.DATA_DIR ? 'set' : 'NOT SET (data will be wiped on redeploy — set DATA_DIR + attach a volume)';
     console.log(`DATA_DIR = ${DATA_DIR}  | DATA_DIR env: ${onVolume}`);
-    console.log(`KeyAuth sellers (${SELLERS.length}): ${SELLERS.map(s => s.label).join(', ') || '(none configured)'}`);
+    const allSellers = getSellers();
+    console.log(`KeyAuth sellers (${allSellers.length}): ${allSellers.map(s => s.label).join(', ') || '(none configured)'}`);
 });
 
 // ── Discord Bot ──

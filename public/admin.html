@@ -237,6 +237,35 @@
         .step-block .field { margin-bottom: 12px; }
         .field-row { display: flex; gap: 10px; }
         .field-row .field { flex: 1; }
+
+        /* Seller Keys */
+        .sk-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px; padding: 22px 24px;
+        }
+        .sk-card-head { display: flex; align-items: flex-start; gap: 14px; padding-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 18px; }
+        .sk-plus { color: #ef3b44; font-size: 18px; font-weight: 700; line-height: 1.2; }
+        .sk-card-title { font-size: 14px; font-weight: 700; color: #dddde8; }
+        .sk-card-sub { font-size: 12px; color: #55566a; margin-top: 3px; }
+        .sk-form { display: flex; align-items: flex-end; gap: 12px; }
+        .sk-form .field { flex: 1; }
+        .sk-list-head { font-size: 13px; font-weight: 700; color: #dddde8; padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .sk-row {
+            display: flex; align-items: center; gap: 12px;
+            padding: 15px 24px; border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .sk-row:last-child { border-bottom: none; }
+        .sk-row-icon { color: #66667e; font-size: 14px; }
+        .sk-row-label { flex: 1; font-size: 14px; font-weight: 600; color: #dddde8; letter-spacing: 0.2px; }
+        .sk-row-masked { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px; color: #55566a; letter-spacing: 1px; }
+        .sk-del {
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07);
+            color: #66667e; cursor: pointer; border-radius: 7px; padding: 6px 8px;
+            font-size: 13px; line-height: 1; transition: all 0.15s;
+        }
+        .sk-del:hover { color: #dc5656; border-color: rgba(220,38,38,0.35); background: rgba(220,38,38,0.08); }
+        .sk-empty { padding: 22px 24px; color: #44455a; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -270,6 +299,7 @@
     <div class="dash-tabs">
         <button class="dash-tab on" onclick="switchTab('products',this)">Products</button>
         <button class="dash-tab" onclick="switchTab('guides',this)">Guides</button>
+        <button class="dash-tab" onclick="switchTab('sellerkeys',this)">Seller Keys</button>
     </div>
 
     <div class="dash-content">
@@ -290,6 +320,38 @@
             <p class="hint" style="margin-bottom:14px;">Edit the download/setup instructions shown on the Guides page for each product.</p>
             <div class="guide-list" id="guideList"></div>
             <button class="btn btn-sm" style="margin-top:14px;" onclick="openGuideModal()">+ Add Guide</button>
+        </div>
+
+        <!-- Seller Keys tab -->
+        <div class="tab-panel" id="tab-sellerkeys">
+            <div class="section-label">Seller Keys</div>
+            <p class="hint" style="margin-bottom:18px;">Save labeled KeyAuth seller keys to reuse from the product editor.</p>
+
+            <div class="sk-card">
+                <div class="sk-card-head">
+                    <span class="sk-plus">+</span>
+                    <div>
+                        <div class="sk-card-title">Save a seller key</div>
+                        <div class="sk-card-sub">These appear in the KeyAuth dropdown when editing a product variant.</div>
+                    </div>
+                </div>
+                <div class="sk-form">
+                    <div class="field" style="margin-bottom:0;">
+                        <label>Label</label>
+                        <input type="text" id="skLabel" placeholder="Main KeyAuth app" onkeydown="if(event.key==='Enter')saveSellerKey()">
+                    </div>
+                    <div class="field" style="margin-bottom:0;">
+                        <label>Seller Key</label>
+                        <input type="text" id="skKey" placeholder="KeyAuth seller key" onkeydown="if(event.key==='Enter')saveSellerKey()">
+                    </div>
+                    <button class="btn btn-sm" style="white-space:nowrap;" onclick="saveSellerKey()">+ Save</button>
+                </div>
+            </div>
+
+            <div class="sk-card" style="margin-top:16px;padding:0;">
+                <div class="sk-list-head" id="skCount">Saved keys (0)</div>
+                <div id="sellerKeyList"></div>
+            </div>
         </div>
 
     </div>
@@ -444,6 +506,7 @@ async function loadAdminData() {
         await loadSellers();
         renderProducts();
         renderGuides();
+        loadSellerKeys();
     } catch(e) { console.error(e); }
 }
 
@@ -609,6 +672,60 @@ async function deleteProduct() {
     closeModal('productModal');
     toast('Product deleted');
     await loadAdminData();
+}
+
+// Seller Keys
+let sellerKeys = [];
+async function loadSellerKeys() {
+    try {
+        const res = await fetch('/api/admin/seller-keys', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (!res.ok) { sellerKeys = []; renderSellerKeys(); return; }
+        const data = await res.json();
+        sellerKeys = data.keys || [];
+    } catch (e) { sellerKeys = []; }
+    renderSellerKeys();
+}
+
+function renderSellerKeys() {
+    document.getElementById('skCount').textContent = `Saved keys (${sellerKeys.length})`;
+    const list = document.getElementById('sellerKeyList');
+    if (!sellerKeys.length) {
+        list.innerHTML = '<div class="sk-empty">No seller keys saved yet. Add one above to reuse it in the product editor.</div>';
+        return;
+    }
+    list.innerHTML = sellerKeys.map(k => `
+        <div class="sk-row">
+            <span class="sk-row-icon">&#128273;</span>
+            <span class="sk-row-label">${esc(k.label)}</span>
+            <span class="sk-row-masked">${esc(k.masked)}</span>
+            <button class="sk-del" title="Delete" onclick="deleteSellerKey('${k.id}')">&#128465;</button>
+        </div>`).join('');
+}
+
+async function saveSellerKey() {
+    const label = document.getElementById('skLabel').value.trim();
+    const key = document.getElementById('skKey').value.trim();
+    if (!label) { toast('Add a label'); return; }
+    if (!key) { toast('Paste the seller key'); return; }
+    const res = await fetch('/api/admin/seller-keys', {
+        method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ label, key })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { toast(data.error || 'Could not save'); return; }
+    document.getElementById('skLabel').value = '';
+    document.getElementById('skKey').value = '';
+    toast('Seller key saved');
+    await loadSellerKeys();
+    await loadSellers(); // refresh product-editor dropdown
+}
+
+async function deleteSellerKey(id) {
+    if (!confirm('Delete this seller key? Products using it will stop validating against it.')) return;
+    await fetch('/api/admin/seller-keys/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
+    toast('Seller key deleted');
+    await loadSellerKeys();
+    await loadSellers();
 }
 
 // Guides
