@@ -375,7 +375,7 @@
         <div class="field" id="sellerField" style="display:none;">
             <label>Seller Key (KeyAuth account)</label>
             <select id="editSeller" style="width:100%;padding:10px 12px;background:#12121c;border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#d4d4e4;font-size:13px;font-family:inherit;outline:none;"></select>
-            <div class="hint">Which KeyAuth account this product's keys belong to. Pick <strong>Any</strong> unless the same subscription number is reused across different seller keys.</div>
+            <div class="hint">Which saved KeyAuth account this product's keys belong to (add these in the <strong>Seller Keys</strong> tab). Pick <strong>Any</strong> unless the same subscription number is reused across different seller keys.</div>
         </div>
         <div class="field">
             <label>Detect by Keyword (no seller key)</label>
@@ -549,8 +549,9 @@ function populateSellerSelect(selected) {
     const sel = document.getElementById('editSeller');
     const field = document.getElementById('sellerField');
     if (!sel || !field) return;
-    // Only show the dropdown when more than one seller key is configured
-    if (sellersList.length <= 1) { field.style.display = 'none'; sel.innerHTML = ''; return; }
+    // Show the dropdown whenever at least one seller key exists (env or saved in the
+    // Seller Keys tab) so it can be picked for a product. Hide only when none exist.
+    if (sellersList.length < 1) { field.style.display = 'none'; sel.innerHTML = ''; return; }
     field.style.display = '';
     sel.innerHTML = '<option value="">Any seller</option>' +
         sellersList.map(s => `<option value="${s.replace(/"/g,'&quot;')}">${s}</option>`).join('');
