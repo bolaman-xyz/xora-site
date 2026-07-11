@@ -23,13 +23,13 @@
         .bg-glow {
             position: fixed; top: -300px; left: 50%; transform: translateX(-50%);
             width: 1000px; height: 700px;
-            background: radial-gradient(ellipse, rgba(210,35,40,0.1) 0%, rgba(150,25,30,0.04) 45%, transparent 70%);
+            background: radial-gradient(ellipse, rgba(144,144,144,0.1) 0%, rgba(150,25,30,0.04) 45%, transparent 70%);
             pointer-events: none; z-index: 0;
         }
 
         /* Banner */
         .banner {
-            background: linear-gradient(90deg, #b3141f, #ef3b44);
+            background: linear-gradient(90deg, #6e6e6e, #a8a8a8);
             text-align: center; padding: 7px 16px;
             font-size: 12.5px; font-weight: 600; color: #fff;
             letter-spacing: 0.2px;
@@ -52,12 +52,11 @@
         }
         .logo-box {
             width: 28px; height: 28px;
-            background: linear-gradient(135deg, #e11d2a, #b3141f);
             border-radius: 7px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 11px; font-weight: 800; color: #fff;
-            letter-spacing: -0.5px;
+            overflow: hidden;
         }
+        .logo-box img { width: 100%; height: 100%; object-fit: contain; display: block; }
         .nav-link {
             font-size: 13px; font-weight: 500; color: #55566a;
             text-decoration: none; transition: color 0.15s;
@@ -67,7 +66,7 @@
         .nav-link:hover { color: #b0b0c8; }
         .nav-link.active {
             color: #e0e0ee;
-            border-bottom-color: #e11d2a;
+            border-bottom-color: #909090;
         }
 
         /* Hero */
@@ -81,7 +80,7 @@
             letter-spacing: -0.5px;
         }
         .hero h1 span {
-            color: #ef3b44;
+            color: #a8a8a8;
         }
         .hero p {
             color: #4e4f63; font-size: 14px; margin-top: 8px;
@@ -95,15 +94,15 @@
         .notice-inner {
             display: flex; align-items: center; gap: 10px;
             padding: 10px 16px;
-            background: rgba(225,29,42,0.05);
-            border: 1px solid rgba(225,29,42,0.1);
+            background: rgba(144,144,144,0.05);
+            border: 1px solid rgba(144,144,144,0.1);
             border-radius: 8px;
             font-size: 12.5px; color: #6b6b82;
         }
-        .notice-inner strong { color: #ef3b44; font-weight: 600; }
+        .notice-inner strong { color: #a8a8a8; font-weight: 600; }
         .notice-dot {
             width: 5px; height: 5px; border-radius: 50%;
-            background: #ef3b44; flex-shrink: 0;
+            background: #a8a8a8; flex-shrink: 0;
         }
 
         /* Filter */
@@ -124,7 +123,7 @@
             transition: border-color 0.15s;
         }
         .search input::placeholder { color: #33344a; }
-        .search input:focus { border-color: rgba(225,29,42,0.3); }
+        .search input:focus { border-color: rgba(144,144,144,0.3); }
         .search-icon {
             position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
             width: 16px; height: 16px; color: #33344a;
@@ -140,7 +139,7 @@
         }
         .pill:hover { border-color: rgba(255,255,255,0.1); color: #8888a0; }
         .pill.on {
-            background: #e11d2a; border-color: #e11d2a; color: #fff;
+            background: #909090; border-color: #909090; color: #fff;
         }
 
         /* Grid */
@@ -165,7 +164,7 @@
             position: relative;
         }
         .card:hover {
-            border-color: rgba(225,29,42,0.2);
+            border-color: rgba(144,144,144,0.2);
             box-shadow: 0 4px 24px rgba(0,0,0,0.2);
         }
         .card-top {
@@ -174,8 +173,8 @@
         }
         .card-icon {
             width: 40px; height: 40px;
-            background: rgba(225,29,42,0.08);
-            border: 1px solid rgba(225,29,42,0.12);
+            background: rgba(144,144,144,0.08);
+            border: 1px solid rgba(144,144,144,0.12);
             border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
             font-size: 18px;
@@ -216,9 +215,9 @@
         .tag {
             padding: 3px 8px; border-radius: 5px;
             font-size: 10.5px; font-weight: 600;
-            background: rgba(225,29,42,0.07);
-            border: 1px solid rgba(225,29,42,0.1);
-            color: #e0888d;
+            background: rgba(144,144,144,0.07);
+            border: 1px solid rgba(144,144,144,0.1);
+            color: #b0b0b0;
         }
 
         .card-bottom {
@@ -233,13 +232,13 @@
         .dl-btn {
             display: flex; align-items: center; gap: 6px;
             padding: 7px 16px;
-            background: #e11d2a;
+            background: #909090;
             color: #fff; border: none; border-radius: 7px;
             font-size: 12px; font-weight: 600; cursor: pointer;
             font-family: inherit;
             transition: background 0.15s, transform 0.1s;
         }
-        .dl-btn:hover { background: #b3141f; transform: translateY(-1px); }
+        .dl-btn:hover { background: #6e6e6e; transform: translateY(-1px); }
         .dl-btn:active { transform: translateY(0); }
         .dl-btn svg { width: 14px; height: 14px; }
         .dl-btn.off {
@@ -266,7 +265,7 @@
 
 <nav>
     <a class="logo" href="#">
-        <div class="logo-box">X</div>
+        <div class="logo-box"><img src="/logo.gif" alt="Xora"></div>
     </a>
     <a class="nav-link active" href="downloads.html">Downloads</a>
     <a class="nav-link" href="guides.html">Guides</a>
@@ -318,7 +317,7 @@ function makeCard(p) {
 
     let imgHtml = '';
     if (img) {
-        imgHtml = `<div class="card-img" style="width:40px;height:40px;border-radius:10px;overflow:hidden;border:1px solid rgba(225,29,42,0.12);flex-shrink:0;">
+        imgHtml = `<div class="card-img" style="width:40px;height:40px;border-radius:10px;overflow:hidden;border:1px solid rgba(144,144,144,0.12);flex-shrink:0;">
             <img src="${img}" style="width:100%;height:100%;object-fit:cover;" alt="">
         </div>`;
     } else {
@@ -393,7 +392,7 @@ async function loadProducts() {
         }
     } catch (e) {
         console.error(e);
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:#dc5656;font-size:13px;">Failed to load products.</div>';
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:#a0a0a0;font-size:13px;">Failed to load products.</div>';
     }
 }
 

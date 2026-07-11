@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Products | Xora</title>
-    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="icon" type="image/png" href="/logo.gif">
 
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,8 +17,8 @@
             min-height: 100vh;
             display: flex;
             background-image:
-                radial-gradient(ellipse 600px 400px at 15% 10%, rgba(220,40,40,0.07) 0%, transparent 70%),
-                radial-gradient(ellipse 500px 350px at 85% 80%, rgba(235,50,50,0.06) 0%, transparent 70%),
+                radial-gradient(ellipse 600px 400px at 15% 10%, rgba(144,144,144,0.07) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 350px at 85% 80%, rgba(144,144,144,0.06) 0%, transparent 70%),
                 radial-gradient(ellipse 400px 300px at 50% 50%, rgba(200,30,30,0.04) 0%, transparent 70%),
                 repeating-linear-gradient(0deg, transparent, transparent 49px, rgba(255,255,255,0.035) 49px, rgba(255,255,255,0.035) 50px),
                 repeating-linear-gradient(90deg, transparent, transparent 49px, rgba(255,255,255,0.035) 49px, rgba(255,255,255,0.035) 50px);
@@ -273,13 +273,13 @@
         .dl-btn {
             display: flex; align-items: center; gap: 6px;
             padding: 8px 18px;
-            background: #e11d2a; color: #fff;
+            background: #909090; color: #fff;
             border: none; border-radius: 7px;
             font-size: 12px; font-weight: 600; cursor: pointer;
             font-family: inherit; text-decoration: none;
             transition: background 0.15s, transform 0.1s;
         }
-        .dl-btn:hover { background: #b3141f; transform: translateY(-1px); }
+        .dl-btn:hover { background: #6e6e6e; transform: translateY(-1px); }
         .dl-btn svg { width: 14px; height: 14px; }
 
         /* Email modal */
@@ -314,8 +314,8 @@
         }
         .btn-cancel { background: rgba(255,255,255,0.04); color: #555568; }
         .btn-cancel:hover { color: #8888a0; }
-        .btn-go { background: #e11d2a; color: #fff; }
-        .btn-go:hover { background: #b3141f; }
+        .btn-go { background: #909090; color: #fff; }
+        .btn-go:hover { background: #6e6e6e; }
 
         .loading-spinner {
             display: flex; align-items: center; justify-content: center;
@@ -353,13 +353,13 @@
         .email-prompt-form input:focus { border-color: rgba(255,255,255,0.15); }
         .email-prompt-form button {
             padding: 11px 22px;
-            background: #e11d2a; color: #fff;
+            background: #909090; color: #fff;
             border: none; border-radius: 8px;
             font-size: 13px; font-weight: 600; cursor: pointer;
             font-family: inherit; transition: background 0.15s;
             white-space: nowrap;
         }
-        .email-prompt-form button:hover { background: #b3141f; }
+        .email-prompt-form button:hover { background: #6e6e6e; }
 
         /* Guide view */
         .guide-view {
@@ -453,8 +453,8 @@
 
         .guide-info-box {
             padding: 16px 20px; border-radius: 12px;
-            background: rgba(225,29,42,0.05);
-            border: 1px solid rgba(225,29,42,0.1);
+            background: rgba(144,144,144,0.05);
+            border: 1px solid rgba(144,144,144,0.1);
             font-size: 13.5px; color: #8b8baa; margin-bottom: 24px;
             line-height: 1.5;
         }
@@ -489,7 +489,7 @@
 <!-- Sidebar -->
 <div class="sidebar">
     <div class="sidebar-logo">
-        <div class="logo-icon"><img src="/logo.png" alt="Xora"></div>
+        <div class="logo-icon"><img src="/logo.gif" alt="Xora"></div>
         <span class="logo-name">Xora</span>
     </div>
 
@@ -610,7 +610,7 @@ function showEmailPrompt() {
                 <input type="text" id="promptEmail" placeholder="XXXX-XXXX-XXXX-XXXX" onkeydown="if(event.key==='Enter')submitEmail()">
                 <button onclick="submitEmail()">Unlock</button>
             </div>
-            <div id="keyError" style="color:#e25555;font-size:12.5px;margin-top:12px;display:none;"></div>
+            <div id="keyError" style="color:#a5a5a5;font-size:12.5px;margin-top:12px;display:none;"></div>
         </div>`;
     setTimeout(() => { const el = document.getElementById('promptEmail'); if (el) el.focus(); }, 100);
 }

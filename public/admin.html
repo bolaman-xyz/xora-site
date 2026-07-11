@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin | Xora</title>
-    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="icon" type="image/png" href="/logo.gif">
 
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,7 +22,7 @@
         .bg-glow {
             position: fixed; top: -300px; left: 50%; transform: translateX(-50%);
             width: 1000px; height: 700px;
-            background: radial-gradient(ellipse, rgba(210,35,40,0.1) 0%, rgba(150,25,30,0.04) 45%, transparent 70%);
+            background: radial-gradient(ellipse, rgba(144,144,144,0.1) 0%, rgba(150,25,30,0.04) 45%, transparent 70%);
             pointer-events: none; z-index: 0;
         }
 
@@ -42,7 +42,7 @@
             font-size: 22px; font-weight: 800; color: #fff;
             margin-bottom: 4px;
         }
-        .login-box h1 span { color: #ef3b44; }
+        .login-box h1 span { color: #a8a8a8; }
         .login-box p { font-size: 13px; color: #44455a; margin-bottom: 24px; }
         .field { margin-bottom: 16px; }
         .field label {
@@ -58,7 +58,7 @@
             font-family: inherit; outline: none;
             transition: border-color 0.15s;
         }
-        .field input:focus, .field textarea:focus, .field select:focus { border-color: rgba(225,29,42,0.3); }
+        .field input:focus, .field textarea:focus, .field select:focus { border-color: rgba(144,144,144,0.3); }
         .field select { appearance: none; -webkit-appearance: none; cursor: pointer; }
         .field select option, .field select optgroup {
             background: #15172b; color: #e0e0ee;
@@ -66,13 +66,13 @@
         .field textarea { resize: vertical; min-height: 80px; }
         .btn {
             width: 100%; padding: 10px;
-            background: #e11d2a; color: #fff;
+            background: #909090; color: #fff;
             border: none; border-radius: 8px;
             font-size: 13px; font-weight: 700;
             cursor: pointer; font-family: inherit;
             transition: background 0.15s;
         }
-        .btn:hover { background: #b3141f; }
+        .btn:hover { background: #6e6e6e; }
         .btn-outline {
             background: transparent;
             border: 1px solid rgba(255,255,255,0.06);
@@ -80,10 +80,10 @@
         }
         .btn-outline:hover { border-color: rgba(255,255,255,0.12); color: #8888a0; }
         .btn-sm { width: auto; padding: 7px 14px; font-size: 12px; }
-        .btn-danger { background: #dc2626; }
-        .btn-danger:hover { background: #b91c1c; }
+        .btn-danger { background: #909090; }
+        .btn-danger:hover { background: #6e6e6e; }
         .error-msg {
-            color: #dc5656; font-size: 12px;
+            color: #a0a0a0; font-size: 12px;
             margin-top: 8px; display: none;
         }
 
@@ -102,13 +102,13 @@
             display: flex; align-items: center; justify-content: center;
         }
         .logo-box img { width: 100%; height: 100%; object-fit: contain; display: block; }
-        .dash-title { font-size: 13px; font-weight: 600; color: #ef3b44; }
+        .dash-title { font-size: 13px; font-weight: 600; color: #a8a8a8; }
         .logout-btn {
             font-size: 12px; font-weight: 500; color: #44455a;
             background: none; border: none; cursor: pointer;
             font-family: inherit; transition: color 0.15s;
         }
-        .logout-btn:hover { color: #dc5656; }
+        .logout-btn:hover { color: #a0a0a0; }
 
         .dash-tabs {
             display: flex; gap: 4px; padding: 20px 28px 0;
@@ -146,7 +146,7 @@
             border-radius: 10px;
             transition: border-color 0.15s;
         }
-        .prod-item:hover { border-color: rgba(225,29,42,0.15); }
+        .prod-item:hover { border-color: rgba(144,144,144,0.15); }
         .prod-name { font-size: 14px; font-weight: 600; color: #dddde8; flex: 1; }
         .prod-id { font-size: 11px; color: #33344a; }
         .prod-actions { display: flex; gap: 6px; }
@@ -192,7 +192,7 @@
             display: flex; align-items: center; justify-content: space-between;
             transition: border-color 0.15s;
         }
-        .guide-item:hover { border-color: rgba(225,29,42,0.15); }
+        .guide-item:hover { border-color: rgba(144,144,144,0.15); }
         .guide-name { font-size: 14px; font-weight: 600; color: #dddde8; }
         .guide-sub { font-size: 11px; color: #44455a; margin-top: 2px; }
 
@@ -207,7 +207,7 @@
         .toast.show { opacity: 1; transform: translateY(0); }
 
         .section-label {
-            font-size: 11px; font-weight: 700; color: #e11d2a;
+            font-size: 11px; font-weight: 700; color: #909090;
             text-transform: uppercase; letter-spacing: 1px;
             margin-bottom: 12px; margin-top: 20px;
         }
@@ -225,7 +225,7 @@
             margin-bottom: 12px;
         }
         .step-block-head .sb-num {
-            font-size: 11px; font-weight: 700; color: #ef3b44;
+            font-size: 11px; font-weight: 700; color: #a8a8a8;
             text-transform: uppercase; letter-spacing: 0.5px;
         }
         .sb-remove {
@@ -233,7 +233,7 @@
             cursor: pointer; font-size: 15px; line-height: 1;
             padding: 2px 6px; border-radius: 5px; transition: all 0.15s;
         }
-        .sb-remove:hover { color: #dc5656; background: rgba(220,38,38,0.08); }
+        .sb-remove:hover { color: #a0a0a0; background: rgba(144,144,144,0.08); }
         .step-block .field { margin-bottom: 12px; }
         .field-row { display: flex; gap: 10px; }
         .field-row .field { flex: 1; }
@@ -245,7 +245,7 @@
             border-radius: 12px; padding: 22px 24px;
         }
         .sk-card-head { display: flex; align-items: flex-start; gap: 14px; padding-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 18px; }
-        .sk-plus { color: #ef3b44; font-size: 18px; font-weight: 700; line-height: 1.2; }
+        .sk-plus { color: #a8a8a8; font-size: 18px; font-weight: 700; line-height: 1.2; }
         .sk-card-title { font-size: 14px; font-weight: 700; color: #dddde8; }
         .sk-card-sub { font-size: 12px; color: #55566a; margin-top: 3px; }
         .sk-form { display: flex; align-items: flex-end; gap: 12px; }
@@ -264,7 +264,7 @@
             color: #66667e; cursor: pointer; border-radius: 7px; padding: 6px 8px;
             font-size: 13px; line-height: 1; transition: all 0.15s;
         }
-        .sk-del:hover { color: #dc5656; border-color: rgba(220,38,38,0.35); background: rgba(220,38,38,0.08); }
+        .sk-del:hover { color: #a0a0a0; border-color: rgba(144,144,144,0.35); background: rgba(144,144,144,0.08); }
         .sk-empty { padding: 22px 24px; color: #44455a; font-size: 13px; }
     </style>
 </head>
@@ -290,7 +290,7 @@
 <div class="dashboard" id="dashView">
     <div class="dash-nav">
         <div class="dash-nav-left">
-            <div class="logo-box"><img src="/logo.png" alt="Xora"></div>
+            <div class="logo-box"><img src="/logo.gif" alt="Xora"></div>
             <span class="dash-title">Admin Panel</span>
         </div>
         <button class="logout-btn" onclick="logout()">Sign Out</button>
@@ -523,7 +523,7 @@ function renderProducts() {
         const whoWhen = (p.link_updated_at || p.link_updated_by)
             ? `<div class="prod-id" style="margin-top:3px;color:${viaDiscord ? '#5b8def' : '#33344a'};">${viaDiscord ? 'Changed on Discord' : 'Changed in admin'}${p.link_updated_by ? ' by ' + p.link_updated_by : ''}${when ? ' · ' + when : ''}</div>`
             : '';
-        const subBadge = p.sub ? ` <span class="src-badge" style="background:rgba(225,29,42,0.15);color:#f3868c;border:1px solid rgba(225,29,42,0.3);">sub: ${p.sub}</span>` : ' <span class="src-badge" style="background:rgba(220,80,80,0.12);color:#e08585;border:1px solid rgba(220,80,80,0.3);">no sub set</span>';
+        const subBadge = p.sub ? ` <span class="src-badge" style="background:rgba(144,144,144,0.15);color:#c0c0c0;border:1px solid rgba(144,144,144,0.3);">sub: ${p.sub}</span>` : ' <span class="src-badge" style="background:rgba(144,144,144,0.12);color:#b0b0b0;border:1px solid rgba(144,144,144,0.3);">no sub set</span>';
         return `<div class="prod-item">
             <div style="flex:1">
                 <div class="prod-name">${p.name || 'Untitled'}${subBadge}${discordBadge}</div>
